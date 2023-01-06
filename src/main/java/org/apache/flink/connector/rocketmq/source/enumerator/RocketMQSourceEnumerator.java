@@ -32,6 +32,7 @@ import org.apache.flink.api.connector.source.SplitEnumeratorContext;
 import org.apache.flink.api.connector.source.SplitsAssignment;
 import org.apache.flink.api.java.tuple.Tuple3;
 import org.apache.flink.connector.rocketmq.legacy.RocketMQConfig;
+import org.apache.flink.connector.rocketmq.source.enumerator.initializer.OffsetsInitializer;
 import org.apache.flink.connector.rocketmq.source.split.RocketMQPartitionSplit;
 import org.apache.flink.util.FlinkRuntimeException;
 import org.apache.flink.util.StringUtils;
@@ -81,6 +82,9 @@ public class RocketMQSourceEnumerator
     private final String secretKey;
 
     private final SplitEnumeratorContext<RocketMQPartitionSplit> context;
+
+    private OffsetsInitializer startingOffsetInitializer;
+    private OffsetsInitializer stoppingOffsetInitializer;
 
     // The internal states of the enumerator.
     /**

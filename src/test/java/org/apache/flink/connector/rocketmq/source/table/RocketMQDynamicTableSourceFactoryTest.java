@@ -19,7 +19,7 @@
 package org.apache.flink.connector.rocketmq.source.table;
 
 import org.apache.flink.configuration.Configuration;
-import org.apache.flink.connector.rocketmq.common.RocketMQOptions;
+import org.apache.flink.connector.rocketmq.source.RocketMQOptions;
 import org.apache.flink.table.api.Schema;
 import org.apache.flink.table.api.ValidationException;
 import org.apache.flink.table.catalog.CatalogTable;

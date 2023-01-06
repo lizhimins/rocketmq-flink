@@ -31,21 +31,21 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import static org.apache.flink.connector.rocketmq.common.RocketMQOptions.NAME_SERVER_ADDRESS;
-import static org.apache.flink.connector.rocketmq.common.RocketMQOptions.OPTIONAL_ACCESS_KEY;
-import static org.apache.flink.connector.rocketmq.common.RocketMQOptions.OPTIONAL_ENCODING;
-import static org.apache.flink.connector.rocketmq.common.RocketMQOptions.OPTIONAL_FIELD_DELIMITER;
-import static org.apache.flink.connector.rocketmq.common.RocketMQOptions.OPTIONAL_SECRET_KEY;
-import static org.apache.flink.connector.rocketmq.common.RocketMQOptions.OPTIONAL_TAG;
-import static org.apache.flink.connector.rocketmq.common.RocketMQOptions.OPTIONAL_WRITE_DYNAMIC_TAG_COLUMN;
-import static org.apache.flink.connector.rocketmq.common.RocketMQOptions.OPTIONAL_WRITE_DYNAMIC_TAG_COLUMN_WRITE_INCLUDED;
-import static org.apache.flink.connector.rocketmq.common.RocketMQOptions.OPTIONAL_WRITE_IS_DYNAMIC_TAG;
-import static org.apache.flink.connector.rocketmq.common.RocketMQOptions.OPTIONAL_WRITE_KEYS_TO_BODY;
-import static org.apache.flink.connector.rocketmq.common.RocketMQOptions.OPTIONAL_WRITE_KEY_COLUMNS;
-import static org.apache.flink.connector.rocketmq.common.RocketMQOptions.OPTIONAL_WRITE_RETRY_TIMES;
-import static org.apache.flink.connector.rocketmq.common.RocketMQOptions.OPTIONAL_WRITE_SLEEP_TIME_MS;
-import static org.apache.flink.connector.rocketmq.common.RocketMQOptions.PRODUCER_GROUP;
-import static org.apache.flink.connector.rocketmq.common.RocketMQOptions.TOPIC;
+import static org.apache.flink.connector.rocketmq.source.RocketMQOptions.NAME_SERVER_ADDRESS;
+import static org.apache.flink.connector.rocketmq.source.RocketMQOptions.OPTIONAL_ACCESS_KEY;
+import static org.apache.flink.connector.rocketmq.source.RocketMQOptions.OPTIONAL_ENCODING;
+import static org.apache.flink.connector.rocketmq.source.RocketMQOptions.OPTIONAL_FIELD_DELIMITER;
+import static org.apache.flink.connector.rocketmq.source.RocketMQOptions.OPTIONAL_SECRET_KEY;
+import static org.apache.flink.connector.rocketmq.source.RocketMQOptions.OPTIONAL_TAG;
+import static org.apache.flink.connector.rocketmq.source.RocketMQOptions.OPTIONAL_WRITE_DYNAMIC_TAG_COLUMN;
+import static org.apache.flink.connector.rocketmq.source.RocketMQOptions.OPTIONAL_WRITE_DYNAMIC_TAG_COLUMN_WRITE_INCLUDED;
+import static org.apache.flink.connector.rocketmq.source.RocketMQOptions.OPTIONAL_WRITE_IS_DYNAMIC_TAG;
+import static org.apache.flink.connector.rocketmq.source.RocketMQOptions.OPTIONAL_WRITE_KEYS_TO_BODY;
+import static org.apache.flink.connector.rocketmq.source.RocketMQOptions.OPTIONAL_WRITE_KEY_COLUMNS;
+import static org.apache.flink.connector.rocketmq.source.RocketMQOptions.OPTIONAL_WRITE_RETRY_TIMES;
+import static org.apache.flink.connector.rocketmq.source.RocketMQOptions.OPTIONAL_WRITE_SLEEP_TIME_MS;
+import static org.apache.flink.connector.rocketmq.source.RocketMQOptions.PRODUCER_GROUP;
+import static org.apache.flink.connector.rocketmq.source.RocketMQOptions.TOPIC;
 import static org.apache.flink.table.factories.FactoryUtil.createTableFactoryHelper;
 
 /**

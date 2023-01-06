@@ -46,9 +46,6 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.stream.Stream;
 
-import static org.apache.flink.api.connector.source.Boundedness.BOUNDED;
-import static org.apache.flink.api.connector.source.Boundedness.CONTINUOUS_UNBOUNDED;
-
 /** Defines the scan table source of RocketMQ. */
 public class RocketMQScanTableSource implements ScanTableSource, SupportsReadingMetadata {
 
@@ -122,24 +119,26 @@ public class RocketMQScanTableSource implements ScanTableSource, SupportsReading
     @Override
     public ScanRuntimeProvider getScanRuntimeProvider(ScanContext scanContext) {
         if (useNewApi) {
-            return SourceProvider.of(
-                    new RocketMQSource<>(
-                            pollTime,
-                            topic,
-                            consumerGroup,
-                            nameServerAddress,
-                            accessKey,
-                            secretKey,
-                            tag,
-                            sql,
-                            stopInMs,
-                            startTime,
-                            startMessageOffset < 0 ? 0 : startMessageOffset,
-                            partitionDiscoveryIntervalMs,
-                            isBounded() ? BOUNDED : CONTINUOUS_UNBOUNDED,
-                            createRocketMQDeserializationSchema(),
-                            consumerOffsetMode,
-                            consumerOffsetTimestamp));
+            // return SourceProvider.of(
+            //        new RocketMQSource<>(
+            //                pollTime,
+            //                topic,
+            //                consumerGroup,
+            //                nameServerAddress,
+            //                accessKey,
+            //                secretKey,
+            //                tag,
+            //                sql,
+            //                stopInMs,
+            //                startTime,
+            //                startMessageOffset < 0 ? 0 : startMessageOffset,
+            //                partitionDiscoveryIntervalMs,
+            //                isBounded() ? BOUNDED : CONTINUOUS_UNBOUNDED,
+            //                createRocketMQDeserializationSchema(),
+            //                consumerOffsetMode,
+            //                consumerOffsetTimestamp));
+
+            return SourceProvider.of(new RocketMQSource<>(null, null, null, null, null));
         } else {
             return SourceFunctionProvider.of(
                     new RocketMQSourceFunction<>(

@@ -25,6 +25,7 @@ import java.util.Map;
 public class BytesMessage {
 
     private byte[] data;
+
     private Map<String, String> properties = new HashMap<>();
 
     public byte[] getData() {

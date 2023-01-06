@@ -20,8 +20,8 @@ package org.apache.flink.connector.rocketmq.source.table;
 
 import org.apache.flink.configuration.ConfigOption;
 import org.apache.flink.configuration.Configuration;
-import org.apache.flink.connector.rocketmq.common.RocketMQOptions;
 import org.apache.flink.connector.rocketmq.legacy.RocketMQConfig;
+import org.apache.flink.connector.rocketmq.source.RocketMQOptions;
 import org.apache.flink.table.api.TableSchema;
 import org.apache.flink.table.connector.source.DynamicTableSource;
 import org.apache.flink.table.descriptors.DescriptorProperties;

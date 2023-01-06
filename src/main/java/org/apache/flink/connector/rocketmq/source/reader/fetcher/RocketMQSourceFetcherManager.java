@@ -15,13 +15,13 @@
  * limitations under the License.
  */
 
-package org.apache.flink.connector.rocketmq.legacy.common.config;
+package org.apache.flink.connector.rocketmq.source.reader.fetcher;
 
-/** Config for #{@link StartupMode#GROUP_OFFSETS}. */
-public enum OffsetResetStrategy {
-    /** If group offsets is not found,the latest offset would be set to start consumer */
-    LATEST,
+import org.apache.flink.annotation.Internal;
 
-    /** If group offsets is not found,the earliest offset would be set to start consumer */
-    EARLIEST
+@Internal
+public class RocketMQSourceFetcherManager {
+
+    // use offset store may better
+
 }

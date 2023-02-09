@@ -27,7 +27,7 @@ import java.io.IOException;
 import java.io.Serializable;
 
 /** An interface for the deserialization of records. */
-public interface DeserializationSchema<IN, OUT> extends Serializable, ResultTypeQueryable<OUT> {
+public interface QueryableSchema<IN, OUT> extends Serializable, ResultTypeQueryable<OUT> {
 
     /**
      * Initialization method for the schema. It is called before the actual working methods {@link

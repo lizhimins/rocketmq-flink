@@ -107,43 +107,52 @@ public class RocketMQSource<OUT>
         this.props = props;
     }
 
-    // public RocketMQSource(
-    //        long pollTime,
-    //        String topic,
-    //        String consumerGroup,
-    //        String nameServerAddress,
-    //        String accessKey,
-    //        String secretKey,
-    //        String tag,
-    //        String sql,
-    //        long stopInMs,
-    //        long startTime,
-    //        long startOffset,
-    //        long partitionDiscoveryIntervalMs,
-    //        Boundedness boundedness,
-    //        RocketMQDeserializationSchema<OUT> deserializationSchema,
-    //        String cosumerOffsetMode,
-    //        long consumerOffsetTimestamp) {
-    //    Validate.isTrue(
-    //            !(StringUtils.isNotEmpty(tag) && StringUtils.isNotEmpty(sql)),
-    //            "Consumer tag and sql can not set value at the same time");
-    //    this.pollTime = pollTime;
-    //    this.topic = topic;
-    //    this.consumerGroup = consumerGroup;
-    //    this.nameServerAddress = nameServerAddress;
-    //    this.accessKey = accessKey;
-    //    this.secretKey = secretKey;
-    //    this.tag = StringUtils.isEmpty(tag) ? RocketMQConfig.DEFAULT_CONSUMER_TAG : tag;
-    //    this.sql = sql;
-    //    this.stopInMs = stopInMs;
-    //    this.startTime = startTime;
-    //    this.startOffset = startOffset > 0 ? startOffset : startTime;
-    //    this.partitionDiscoveryIntervalMs = partitionDiscoveryIntervalMs;
-    //    this.boundedness = boundedness;
-    //    this.deserializationSchema = deserializationSchema;
-    //    this.consumerOffsetMode = cosumerOffsetMode;
-    //    this.consumerOffsetTimestamp = consumerOffsetTimestamp;
-    // }
+    /**
+     * Get a RocketMQSourceBuilder to build a {@link RocketMQSourceBuilder}.
+     *
+     * @return a RocketMQ source builder.
+     */
+    public static <OUT> RocketMQSourceBuilder<OUT> builder() {
+        return new RocketMQSourceBuilder<>();
+    }
+
+     //public RocketMQSource(
+     //       long pollTime,
+     //       String topic,
+     //       String consumerGroup,
+     //       String nameServerAddress,
+     //       String accessKey,
+     //       String secretKey,
+     //       String tag,
+     //       String sql,
+     //       long stopInMs,
+     //       long startTime,
+     //       long startOffset,
+     //       long partitionDiscoveryIntervalMs,
+     //       Boundedness boundedness,
+     //       RocketMQDeserializationSchema<OUT> deserializationSchema,
+     //       String cosumerOffsetMode,
+     //       long consumerOffsetTimestamp) {
+     //   Validate.isTrue(
+     //           !(StringUtils.isNotEmpty(tag) && StringUtils.isNotEmpty(sql)),
+     //           "Consumer tag and sql can not set value at the same time");
+     //   this.pollTime = pollTime;
+     //   this.topic = topic;
+     //   this.consumerGroup = consumerGroup;
+     //   this.nameServerAddress = nameServerAddress;
+     //   this.accessKey = accessKey;
+     //   this.secretKey = secretKey;
+     //   this.tag = StringUtils.isEmpty(tag) ? RocketMQConfig.DEFAULT_CONSUMER_TAG : tag;
+     //   this.sql = sql;
+     //   this.stopInMs = stopInMs;
+     //   this.startTime = startTime;
+     //   this.startOffset = startOffset > 0 ? startOffset : startTime;
+     //   this.partitionDiscoveryIntervalMs = partitionDiscoveryIntervalMs;
+     //   this.boundedness = boundedness;
+     //   this.deserializationSchema = deserializationSchema;
+     //   this.consumerOffsetMode = cosumerOffsetMode;
+     //   this.consumerOffsetTimestamp = consumerOffsetTimestamp;
+     //}
 
     @Override
     public Boundedness getBoundedness() {

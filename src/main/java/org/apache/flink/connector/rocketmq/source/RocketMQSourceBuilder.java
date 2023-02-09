@@ -18,10 +18,15 @@
 package org.apache.flink.connector.rocketmq.source;
 
 import org.apache.flink.annotation.PublicEvolving;
+import org.apache.flink.api.common.serialization.DeserializationSchema;
 import org.apache.flink.api.connector.source.Boundedness;
+import org.apache.flink.configuration.ConfigOption;
+import org.apache.flink.configuration.Configuration;
+import org.apache.flink.connector.rocketmq.common.RocketMQConfigBuilder;
 import org.apache.flink.connector.rocketmq.source.enumerator.initializer.OffsetsInitializer;
 import org.apache.flink.connector.rocketmq.source.reader.deserializer.RocketMQDeserializationSchema;
 import org.apache.rocketmq.client.consumer.DefaultLitePullConsumer;
+import org.apache.rocketmq.common.protocol.heartbeat.MessageModel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,10 +37,10 @@ import java.util.Properties;
 @PublicEvolving
 public class RocketMQSourceBuilder<OUT> {
 
-    private static final Logger LOG = LoggerFactory.getLogger(RocketMQSourceBuilder.class);
+    private static final Logger log = LoggerFactory.getLogger(RocketMQSourceBuilder.class);
 
     // The subscriber specifies the partitions to subscribe to.
-    // private KafkaSubscriber subscriber;
+    protected DefaultLitePullConsumer consumer;
 
     // Users can specify the starting / stopping offset initializer.
     private OffsetsInitializer startingOffsetsInitializer;
@@ -44,17 +49,23 @@ public class RocketMQSourceBuilder<OUT> {
     // Boundedness
     private Boundedness boundedness;
 
+    // Deserialization Schema
     private RocketMQDeserializationSchema<OUT> deserializationSchema;
 
     // The configurations.
-    protected Properties props;
+    protected RocketMQConfigBuilder configBuilder;
 
-    protected DefaultLitePullConsumer consumer;
+    RocketMQSourceBuilder() {
+    }
 
-    public RocketMQSourceBuilder() {}
-
-    public RocketMQSourceBuilder<OUT> setNameServerAddr(String nameServerAddr) {
-        consumer.setNamesrvAddr(nameServerAddr);
+    /**
+     * Configure the access point with which the SDK should communicate.
+     *
+     * @param endpoints address of service.
+     * @return the client configuration builder instance.
+     */
+    public RocketMQSourceBuilder<OUT> setEndpoints(String endpoints) {
+        consumer.setNamesrvAddr(endpoints);
         return this;
     }
 
@@ -90,8 +101,7 @@ public class RocketMQSourceBuilder<OUT> {
         return this.setTopics(Arrays.asList(topics));
     }
 
-    public RocketMQSourceBuilder<OUT> setStartingOffsets(
-            OffsetsInitializer startingOffsetsInitializer) {
+    public RocketMQSourceBuilder<OUT> setStartingOffsets(OffsetsInitializer startingOffsetsInitializer) {
         this.startingOffsetsInitializer = startingOffsetsInitializer;
         return this;
     }
@@ -108,31 +118,73 @@ public class RocketMQSourceBuilder<OUT> {
         return this;
     }
 
+    /**
+     * now, rocketmq only support broadcast mode when broker version is v4
+     * {@link MessageModel} is the consuming behavior for rocketmq, we would generate different
+     * split by the given subscription type. Please take some time to consider which subscription
+     * type matches your application best. Default is {@link SubscriptionType#Shared}.
+     *
+     * @param messageModel The type of subscription.
+     * @return this PulsarSourceBuilder.
+     * @see <a href="https://pulsar.apache.org/docs/en/concepts-messaging/#subscriptions">RocketMQ
+     * Broadcast Subscriptions</a>
+     */
+    public RocketMQSourceBuilder<OUT> setMessageModel(MessageModel messageModel) {
+        consumer.setMessageModel(messageModel);
+        return this;
+    }
+
     public RocketMQSourceBuilder<OUT> setDeserializer(
             RocketMQDeserializationSchema<OUT> recordDeserializer) {
         this.deserializationSchema = recordDeserializer;
         return this;
     }
 
-    public RocketMQSourceBuilder<OUT> setValueOnlyDeserializer(
-            RocketMQDeserializationSchema<OUT> deserializationSchema) {
-        // this.deserializationSchema =
-        //        RocketMQDeserializationSchema.valueOnly(deserializationSchema);
+    public RocketMQSourceBuilder<OUT> setBodyOnlyDeserializer(
+            DeserializationSchema<OUT> deserializationSchema) {
+        this.deserializationSchema = RocketMQDeserializationSchema.flinkBodyOnlySchema(deserializationSchema);
         return this;
     }
 
-    public RocketMQSourceBuilder<OUT> setClientIdPrefix(String prefix) {
-        // return setProperty(RocketMQOptions.CLIENT_ID_PREFIX.key(), prefix);
+
+    /**
+     * Set an arbitrary property for the PulsarSource and Pulsar Consumer. The valid keys can be
+     * found in {@link PulsarSourceOptions} and {@link PulsarOptions}.
+     *
+     * <p>Make sure the option could be set only once or with same value.
+     *
+     * @param key the key of the property.
+     * @param value the value of the property.
+     * @return this PulsarSourceBuilder.
+     */
+    public <T> RocketMQSourceBuilder<OUT> setConfig(ConfigOption<T> key, T value) {
+        configBuilder.set(key, value);
         return this;
     }
 
-    public RocketMQSourceBuilder<OUT> setProperty(String key, String value) {
-        props.setProperty(key, value);
+    /**
+     * Set arbitrary properties for the PulsarSource and Pulsar Consumer. The valid keys can be
+     * found in {@link PulsarSourceOptions} and {@link PulsarOptions}.
+     *
+     * @param config the config to set for the PulsarSource.
+     * @return this PulsarSourceBuilder.
+     */
+    public RocketMQSourceBuilder<OUT> setConfig(Configuration config) {
+        configBuilder.set(config);
         return this;
     }
 
-    public RocketMQSourceBuilder<OUT> setProperties(Properties props) {
-        this.props.putAll(props);
+    /**
+     * Set arbitrary properties for the PulsarSource and Pulsar Consumer. The valid keys can be
+     * found in {@link PulsarSourceOptions} and {@link PulsarOptions}.
+     *
+     * <p>This method is mainly used for future flink SQL binding.
+     *
+     * @param properties the config properties to set for the PulsarSource.
+     * @return this PulsarSourceBuilder.
+     */
+    public RocketMQSourceBuilder<OUT> setProperties(Properties properties) {
+        configBuilder.set(properties);
         return this;
     }
 
@@ -144,122 +196,30 @@ public class RocketMQSourceBuilder<OUT> {
     public RocketMQSource<OUT> build() {
         // sanityCheck();
         // parseAndSetRequiredProperties();
-        return new RocketMQSource<>(
-                startingOffsetsInitializer,
-                stoppingOffsetsInitializer,
-                boundedness,
-                deserializationSchema,
-                props);
+        //return new RocketMQSource<>(
+        //        startingOffsetsInitializer,
+        //        stoppingOffsetsInitializer,
+        //        boundedness,
+        //        deserializationSchema,
+        //        props);
+        return null;
     }
 
     // ------------- private helpers  --------------
 
-    // private void ensureSubscriberIsNull(String attemptingSubscribeMode) {
-    //    if (subscriber != null) {
-    //        throw new IllegalStateException(
-    //                String.format(
-    //                        "Cannot use %s for consumption because a %s is already set for
-    // consumption.",
-    //                        attemptingSubscribeMode, subscriber.getClass().getSimpleName()));
-    //    }
-    // }
-    //
-    // private void parseAndSetRequiredProperties() {
-    //    maybeOverride(
-    //            ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG,
-    //            ByteArrayDeserializer.class.getName(),
-    //            true);
-    //    maybeOverride(
-    //            ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG,
-    //            ByteArrayDeserializer.class.getName(),
-    //            true);
-    //    if (!props.containsKey(ConsumerConfig.GROUP_ID_CONFIG)) {
-    //        LOG.warn(
-    //                "Offset commit on checkpoint is disabled because {} is not specified",
-    //                ConsumerConfig.GROUP_ID_CONFIG);
-    //        maybeOverride(KafkaSourceOptions.COMMIT_OFFSETS_ON_CHECKPOINT.key(), "false", false);
-    //    }
-    //    maybeOverride(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, "false", false);
-    //    maybeOverride(
-    //            ConsumerConfig.AUTO_OFFSET_RESET_CONFIG,
-    //            startingOffsetsInitializer.getAutoOffsetResetStrategy().name().toLowerCase(),
-    //            true);
-    //
-    //    // If the source is bounded, do not run periodic partition discovery.
-    //    maybeOverride(
-    //            KafkaSourceOptions.PARTITION_DISCOVERY_INTERVAL_MS.key(),
-    //            "-1",
-    //            boundedness == Boundedness.BOUNDED);
-    //
-    //    // If the client id prefix is not set, reuse the consumer group id as the client id
-    // prefix,
-    //    // or generate a random string if consumer group id is not specified.
-    //    maybeOverride(
-    //            KafkaSourceOptions.CLIENT_ID_PREFIX.key(),
-    //            props.containsKey(ConsumerConfig.GROUP_ID_CONFIG)
-    //                    ? props.getProperty(ConsumerConfig.GROUP_ID_CONFIG)
-    //                    : "KafkaSource-" + new Random().nextLong(),
-    //            false);
-    // }
-    //
-    // private boolean maybeOverride(String key, String value, boolean override) {
-    //    boolean overridden = false;
-    //    String userValue = props.getProperty(key);
-    //    if (userValue != null) {
-    //        if (override) {
-    //            LOG.warn(
-    //                    String.format(
-    //                            "Property %s is provided but will be overridden from %s to %s",
-    //                            key, userValue, value));
-    //            props.setProperty(key, value);
-    //            overridden = true;
-    //        }
-    //    } else {
-    //        props.setProperty(key, value);
-    //    }
-    //    return overridden;
-    // }
-    //
-    // private void sanityCheck() {
-    //    // Check required configs.
-    //    for (String requiredConfig : REQUIRED_CONFIGS) {
-    //        checkNotNull(
-    //                props.getProperty(requiredConfig),
-    //                String.format("Property %s is required but not provided", requiredConfig));
-    //    }
-    //    // Check required settings.
-    //    checkNotNull(
-    //            subscriber,
-    //            "No subscribe mode is specified, "
-    //                    + "should be one of topics, topic pattern and partition set.");
-    //    checkNotNull(deserializationSchema, "Deserialization schema is required but not
-    // provided.");
-    //    // Check consumer group ID
-    //    checkState(
-    //            props.containsKey(ConsumerConfig.GROUP_ID_CONFIG) ||
-    // !offsetCommitEnabledManually(),
-    //            String.format(
-    //                    "Property %s is required when offset commit is enabled",
-    //                    ConsumerConfig.GROUP_ID_CONFIG));
-    //    // Check offsets initializers
-    //    if (startingOffsetsInitializer instanceof OffsetsInitializerValidator) {
-    //        ((OffsetsInitializerValidator) startingOffsetsInitializer).validate(props);
-    //    }
-    //    if (stoppingOffsetsInitializer instanceof OffsetsInitializerValidator) {
-    //        ((OffsetsInitializerValidator) stoppingOffsetsInitializer).validate(props);
-    //    }
-    // }
-    //
-    // private boolean offsetCommitEnabledManually() {
-    //    boolean autoCommit =
-    //            props.containsKey(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG)
-    //                    && Boolean.parseBoolean(
-    //                    props.getProperty(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG));
-    //    boolean commitOnCheckpoint =
-    //            props.containsKey(KafkaSourceOptions.COMMIT_OFFSETS_ON_CHECKPOINT.key())
-    //                    && Boolean.parseBoolean(
-    //                    props.getProperty(
-    //                            KafkaSourceOptions.COMMIT_OFFSETS_ON_CHECKPOINT.key()));
-    //    return autoCommit || commitOnCheckpoint;
-    // }
+    /**
+     * Helper method for java compiler recognize the generic type.
+     */
+    @SuppressWarnings("unchecked")
+    private <T extends OUT> RocketMQSourceBuilder<T> specialized() {
+        return (RocketMQSourceBuilder<T>) this;
+    }
+
+    private void ensureConsumerIsNull(String attemptingSubscribeMode) {
+        if (consumer != null) {
+            throw new IllegalStateException(
+                    String.format("Cannot use %s for consumption because a %s is already set for consumption.",
+                            attemptingSubscribeMode, consumer.getClass().getSimpleName()));
+        }
+    }
 }

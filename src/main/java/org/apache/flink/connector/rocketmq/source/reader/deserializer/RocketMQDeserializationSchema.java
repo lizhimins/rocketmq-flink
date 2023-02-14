@@ -46,7 +46,7 @@ public interface RocketMQDeserializationSchema<T> extends Serializable, ResultTy
      *
      * @param context Contextual information that can be used during initialization.
      */
-    default void open(InitializationContext context) throws Exception {
+    default void open(DeserializationSchema.InitializationContext context) throws Exception {
         // Nothing to do here for the default implementation.
     }
 

@@ -17,14 +17,30 @@
 
 package org.apache.flink.connector.rocketmq.sink;
 
-import org.apache.flink.annotation.Internal;
 import org.apache.flink.annotation.PublicEvolving;
 import org.apache.flink.api.connector.sink2.Committer;
 import org.apache.flink.api.connector.sink2.TwoPhaseCommittingSink;
-import org.apache.flink.connector.base.DeliveryGuarantee;
+import org.apache.flink.connector.rocketmq.sink.committer.RocketMQCommittable;
+import org.apache.flink.core.io.SimpleVersionedSerializer;
+
+import java.io.IOException;
 
 @PublicEvolving
-public class RocketMQSink
-        implements StatefulSink<IN, KafkaWriterState>,
-        TwoPhaseCommittingSink<IN, KafkaCommittable> {
+public class RocketMQSink<IN> implements
+        TwoPhaseCommittingSink<IN, RocketMQCommittable> {
+
+    @Override
+    public PrecommittingSinkWriter<IN, RocketMQCommittable> createWriter(InitContext context) throws IOException {
+        return null;
+    }
+
+    @Override
+    public Committer<RocketMQCommittable> createCommitter() throws IOException {
+        return null;
+    }
+
+    @Override
+    public SimpleVersionedSerializer<RocketMQCommittable> getCommittableSerializer() {
+        return null;
+    }
 }

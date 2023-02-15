@@ -18,15 +18,18 @@
 package org.apache.flink.connector.rocketmq.sink;
 
 import org.apache.flink.annotation.PublicEvolving;
+import org.apache.flink.api.common.ExecutionConfig;
+import org.apache.flink.api.java.ClosureCleaner;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.connector.base.DeliveryGuarantee;
 import org.apache.flink.connector.rocketmq.common.RocketMQConfigBuilder;
-import org.apache.flink.connector.rocketmq.legacy.RocketMQSink;
+import org.apache.flink.connector.rocketmq.sink.writer.serializer.RocketMQSerializationSchema;
 import org.apache.flink.connector.rocketmq.source.RocketMQSource;
 import org.apache.flink.connector.rocketmq.source.RocketMQSourceBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.time.Duration;
 import java.util.Properties;
 
 import static org.apache.flink.util.Preconditions.checkNotNull;
@@ -92,8 +95,12 @@ import static org.apache.flink.util.Preconditions.checkNotNull;
 public class RocketMQSinkBuilder<IN> {
 
     private static final Logger LOG = LoggerFactory.getLogger(RocketMQSinkBuilder.class);
+
+    private static final Duration DEFAULT_TRANSACTION_TIMEOUT = Duration.ofHours(1);
+
     private RocketMQConfigBuilder configBuilder;
     private DeliveryGuarantee deliveryGuarantee = DeliveryGuarantee.NONE;
+    private RocketMQSerializationSchema<IN> serializer;
 
     RocketMQSinkBuilder() {
         //this.configBuilder = configBuilder;
@@ -156,10 +163,10 @@ public class RocketMQSinkBuilder<IN> {
      * @return {@link KafkaSinkBuilder}
      */
     public RocketMQSinkBuilder<IN> setRecordSerializer(
-            KafkaRecordSerializationSchema<IN> recordSerializer) {
-        this.recordSerializer = checkNotNull(recordSerializer, "recordSerializer");
+            RocketMQSerializationSchema<IN> recordSerializer) {
+        this.serializer = checkNotNull(recordSerializer, "serializer is null");
         ClosureCleaner.clean(
-                this.recordSerializer, ExecutionConfig.ClosureCleanerLevel.RECURSIVE, true);
+                this.serializer, ExecutionConfig.ClosureCleanerLevel.RECURSIVE, true);
         return this;
     }
 

@@ -21,8 +21,10 @@ import org.apache.flink.api.common.eventtime.Watermark;
 import org.apache.flink.api.connector.sink2.TwoPhaseCommittingSink;
 import org.apache.flink.connector.base.DeliveryGuarantee;
 import org.apache.flink.connector.rocketmq.sink.committer.RocketMQCommittable;
+import org.apache.flink.connector.rocketmq.sink.producer.FlinkRocketMQInternalProducer;
 import org.apache.flink.connector.rocketmq.sink.writer.context.RocketMQSinkContext;
 import org.apache.flink.connector.rocketmq.sink.writer.serializer.RocketMQSerializationSchema;
+import org.apache.flink.shaded.guava30.com.google.common.io.Closer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,7 +43,9 @@ public class RocketMQWriter<IN>
     private static final String KAFKA_PRODUCER_METRICS = "producer-metrics";
 
     private final DeliveryGuarantee deliveryGuarantee;
+
     private final RocketMQSerializationSchema<IN> serializationSchema;
+
     //private final Callback deliveryCallback;
     private final RocketMQSinkContext rocketmqSinkContext;
 
@@ -56,16 +60,30 @@ public class RocketMQWriter<IN>
     // Number of outgoing bytes at the latest metric sync
     //private long latestOutgoingByteTotal;
     //private Metric byteOutMetric;
-    private FlinkKafkaInternalProducer<byte[], byte[]> currentProducer;
-    private final KafkaWriterState kafkaWriterState;
+    private FlinkRocketMQInternalProducer currentProducer;
+
+    //private final RocketMQWriterState kafkaWriterState;
+
     // producer pool only used for exactly once
-    private final Deque<FlinkKafkaInternalProducer<byte[], byte[]>> producerPool =
-            new ArrayDeque<>();
+    //private final Deque<FlinkKafkaInternalProducer<byte[], byte[]>> producerPool =
+    //        new ArrayDeque<>();
     private final Closer closer = Closer.create();
     private long lastCheckpointId;
 
     private boolean closed = false;
     private long lastSync = System.currentTimeMillis();
+
+    public RocketMQWriter(
+            DeliveryGuarantee deliveryGuarantee,
+            RocketMQSerializationSchema<IN> serializationSchema,
+            RocketMQSinkContext rocketmqSinkContext,
+            FlinkRocketMQInternalProducer currentProducer) {
+        this.deliveryGuarantee = deliveryGuarantee;
+        this.serializationSchema = serializationSchema;
+        this.rocketmqSinkContext = rocketmqSinkContext;
+        this.currentProducer = currentProducer;
+        this.lastCheckpointId = lastCheckpointId;
+    }
 
     @Override
     public Collection<RocketMQCommittable> prepareCommit() throws IOException, InterruptedException {

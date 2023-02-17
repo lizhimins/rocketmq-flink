@@ -18,8 +18,6 @@
 
 package org.apache.flink.connector.rocketmq.source;
 
-import org.apache.rocketmq.client.consumer.DefaultLitePullConsumer;
-
 import org.apache.flink.api.common.serialization.DeserializationSchema;
 import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.apache.flink.api.connector.source.Boundedness;
@@ -47,12 +45,11 @@ import org.apache.flink.connector.rocketmq.source.split.RocketMQPartitionSplitSe
 import org.apache.flink.core.io.SimpleVersionedSerializer;
 import org.apache.flink.metrics.MetricGroup;
 import org.apache.flink.util.UserCodeClassLoader;
-
+import org.apache.rocketmq.client.consumer.DefaultLitePullConsumer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
-
 import java.util.Properties;
 import java.util.function.Supplier;
 
@@ -164,18 +161,18 @@ public class RocketMQSource<OUT>
             SourceReaderContext readerContext) {
         FutureCompletingBlockingQueue<RecordsWithSplitIds<Tuple3<OUT, Long, Long>>> elementsQueue =
                 new FutureCompletingBlockingQueue<>();
-        deserializationSchema.open(
-                new DeserializationSchema.InitializationContext() {
-                    @Override
-                    public MetricGroup getMetricGroup() {
-                        return readerContext.metricGroup();
-                    }
-
-                    @Override
-                    public UserCodeClassLoader getUserCodeClassLoader() {
-                        return null;
-                    }
-                });
+        //deserializationSchema.open(
+        //        new DeserializationSchema.InitializationContext() {
+        //            @Override
+        //            public MetricGroup getMetricGroup() {
+        //                return readerContext.metricGroup();
+        //            }
+        //
+        //            @Override
+        //            public UserCodeClassLoader getUserCodeClassLoader() {
+        //                return null;
+        //            }
+        //        });
 
         Supplier<SplitReader<Tuple3<OUT, Long, Long>, RocketMQPartitionSplit>> splitReaderSupplier =
                 () ->

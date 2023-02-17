@@ -25,11 +25,11 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
-public class TimestampOffsetsInitializer implements OffsetsInitializer {
+public class TimestampMessageQueueOffsets implements MessageQueueOffsets {
     private static final long serialVersionUID = 2932230571773627233L;
     private final long startingTimestamp;
 
-    TimestampOffsetsInitializer(long startingTimestamp) {
+    TimestampMessageQueueOffsets(long startingTimestamp) {
         this.startingTimestamp = startingTimestamp;
     }
 

@@ -29,13 +29,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
-public class SpecifiedOffsetsInitializer
-        implements OffsetsInitializer, OffsetsInitializerValidator {
+public class SpecifiedMessageQueueMessageQueueOffsets
+        implements MessageQueueOffsets, MessageQueueOffsetsValidator {
     private static final long serialVersionUID = 1649702397250402877L;
     private final Map<MessageQueue, Long> initialOffsets;
     private final OffsetResetStrategy offsetResetStrategy;
 
-    SpecifiedOffsetsInitializer(
+    SpecifiedMessageQueueMessageQueueOffsets(
             Map<MessageQueue, Long> initialOffsets, OffsetResetStrategy offsetResetStrategy) {
         this.initialOffsets = Collections.unmodifiableMap(initialOffsets);
         this.offsetResetStrategy = offsetResetStrategy;

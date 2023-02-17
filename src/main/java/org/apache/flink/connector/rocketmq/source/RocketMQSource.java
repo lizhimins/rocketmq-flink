@@ -18,7 +18,6 @@
 
 package org.apache.flink.connector.rocketmq.source;
 
-import org.apache.flink.api.common.serialization.DeserializationSchema;
 import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.apache.flink.api.connector.source.Boundedness;
 import org.apache.flink.api.connector.source.Source;
@@ -34,17 +33,13 @@ import org.apache.flink.connector.base.source.reader.splitreader.SplitReader;
 import org.apache.flink.connector.base.source.reader.synchronization.FutureCompletingBlockingQueue;
 import org.apache.flink.connector.rocketmq.source.enumerator.RocketMQSourceEnumState;
 import org.apache.flink.connector.rocketmq.source.enumerator.RocketMQSourceEnumStateSerializer;
-import org.apache.flink.connector.rocketmq.source.enumerator.RocketMQSourceEnumerator;
-import org.apache.flink.connector.rocketmq.source.enumerator.initializer.OffsetsInitializer;
-import org.apache.flink.connector.rocketmq.source.reader.RocketMQPartitionSplitReader;
+import org.apache.flink.connector.rocketmq.source.enumerator.initializer.MessageQueueOffsets;
 import org.apache.flink.connector.rocketmq.source.reader.RocketMQRecordEmitter;
 import org.apache.flink.connector.rocketmq.source.reader.RocketMQSourceReader;
 import org.apache.flink.connector.rocketmq.source.reader.deserializer.RocketMQDeserializationSchema;
 import org.apache.flink.connector.rocketmq.source.split.RocketMQPartitionSplit;
 import org.apache.flink.connector.rocketmq.source.split.RocketMQPartitionSplitSerializer;
 import org.apache.flink.core.io.SimpleVersionedSerializer;
-import org.apache.flink.metrics.MetricGroup;
-import org.apache.flink.util.UserCodeClassLoader;
 import org.apache.rocketmq.client.consumer.DefaultLitePullConsumer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -53,52 +48,36 @@ import javax.annotation.Nullable;
 import java.util.Properties;
 import java.util.function.Supplier;
 
-/** The Source implementation of RocketMQ. */
+/**
+ * The Source implementation of RocketMQ.
+ */
 public class RocketMQSource<OUT>
-        implements Source<OUT, RocketMQPartitionSplit, RocketMQSourceEnumState>,
-                ResultTypeQueryable<OUT> {
+        implements Source<OUT, RocketMQPartitionSplit, RocketMQSourceEnumState>, ResultTypeQueryable<OUT> {
 
     private static final long serialVersionUID = -1L;
     private static final Logger log = LoggerFactory.getLogger(RocketMQSource.class);
 
     // Users can specify the starting / stopping offset initializer.
-    private OffsetsInitializer startingOffsetsInitializer;
-    private OffsetsInitializer stoppingOffsetsInitializer;
+    private final MessageQueueOffsets startingMessageQueueOffsets;
+    private final MessageQueueOffsets stoppingMessageQueueOffsets;
 
     protected DefaultLitePullConsumer consumer;
-
-    private String consumerOffsetMode;
-    private long consumerOffsetTimestamp;
-    private long pollTime;
-    private String topic;
-    private String consumerGroup;
-    private String nameServerAddress;
-    private String tag;
-    private String sql;
-
-    private String accessKey;
-    private String secretKey;
-
-    private long stopInMs;
-    private long startTime;
-    private long startOffset;
-    private long partitionDiscoveryIntervalMs;
 
     // The configurations.
     protected Properties props;
 
     // Boundedness
-    private Boundedness boundedness;
-    private RocketMQDeserializationSchema<OUT> deserializationSchema;
+    private final Boundedness boundedness;
+    private final RocketMQDeserializationSchema<OUT> deserializationSchema;
 
     public RocketMQSource(
-            OffsetsInitializer startingOffsetsInitializer,
-            @Nullable OffsetsInitializer stoppingOffsetsInitializer,
+            @Nullable MessageQueueOffsets startingMessageQueueOffsets,
+            @Nullable MessageQueueOffsets stoppingMessageQueueOffsets,
             Boundedness boundedness,
             RocketMQDeserializationSchema<OUT> deserializationSchema,
             Properties props) {
-        this.startingOffsetsInitializer = startingOffsetsInitializer;
-        this.stoppingOffsetsInitializer = stoppingOffsetsInitializer;
+        this.startingMessageQueueOffsets = startingMessageQueueOffsets;
+        this.stoppingMessageQueueOffsets = stoppingMessageQueueOffsets;
         this.boundedness = boundedness;
         this.deserializationSchema = deserializationSchema;
         this.props = props;
@@ -113,43 +92,43 @@ public class RocketMQSource<OUT>
         return new RocketMQSourceBuilder<>();
     }
 
-     //public RocketMQSource(
-     //       long pollTime,
-     //       String topic,
-     //       String consumerGroup,
-     //       String nameServerAddress,
-     //       String accessKey,
-     //       String secretKey,
-     //       String tag,
-     //       String sql,
-     //       long stopInMs,
-     //       long startTime,
-     //       long startOffset,
-     //       long partitionDiscoveryIntervalMs,
-     //       Boundedness boundedness,
-     //       RocketMQDeserializationSchema<OUT> deserializationSchema,
-     //       String cosumerOffsetMode,
-     //       long consumerOffsetTimestamp) {
-     //   Validate.isTrue(
-     //           !(StringUtils.isNotEmpty(tag) && StringUtils.isNotEmpty(sql)),
-     //           "Consumer tag and sql can not set value at the same time");
-     //   this.pollTime = pollTime;
-     //   this.topic = topic;
-     //   this.consumerGroup = consumerGroup;
-     //   this.nameServerAddress = nameServerAddress;
-     //   this.accessKey = accessKey;
-     //   this.secretKey = secretKey;
-     //   this.tag = StringUtils.isEmpty(tag) ? RocketMQConfig.DEFAULT_CONSUMER_TAG : tag;
-     //   this.sql = sql;
-     //   this.stopInMs = stopInMs;
-     //   this.startTime = startTime;
-     //   this.startOffset = startOffset > 0 ? startOffset : startTime;
-     //   this.partitionDiscoveryIntervalMs = partitionDiscoveryIntervalMs;
-     //   this.boundedness = boundedness;
-     //   this.deserializationSchema = deserializationSchema;
-     //   this.consumerOffsetMode = cosumerOffsetMode;
-     //   this.consumerOffsetTimestamp = consumerOffsetTimestamp;
-     //}
+    //public RocketMQSource(
+    //       long pollTime,
+    //       String topic,
+    //       String consumerGroup,
+    //       String nameServerAddress,
+    //       String accessKey,
+    //       String secretKey,
+    //       String tag,
+    //       String sql,
+    //       long stopInMs,
+    //       long startTime,
+    //       long startOffset,
+    //       long partitionDiscoveryIntervalMs,
+    //       Boundedness boundedness,
+    //       RocketMQDeserializationSchema<OUT> deserializationSchema,
+    //       String cosumerOffsetMode,
+    //       long consumerOffsetTimestamp) {
+    //   Validate.isTrue(
+    //           !(StringUtils.isNotEmpty(tag) && StringUtils.isNotEmpty(sql)),
+    //           "Consumer tag and sql can not set value at the same time");
+    //   this.pollTime = pollTime;
+    //   this.topic = topic;
+    //   this.consumerGroup = consumerGroup;
+    //   this.nameServerAddress = nameServerAddress;
+    //   this.accessKey = accessKey;
+    //   this.secretKey = secretKey;
+    //   this.tag = StringUtils.isEmpty(tag) ? RocketMQConfig.DEFAULT_CONSUMER_TAG : tag;
+    //   this.sql = sql;
+    //   this.stopInMs = stopInMs;
+    //   this.startTime = startTime;
+    //   this.startOffset = startOffset > 0 ? startOffset : startTime;
+    //   this.partitionDiscoveryIntervalMs = partitionDiscoveryIntervalMs;
+    //   this.boundedness = boundedness;
+    //   this.deserializationSchema = deserializationSchema;
+    //   this.consumerOffsetMode = cosumerOffsetMode;
+    //   this.consumerOffsetTimestamp = consumerOffsetTimestamp;
+    //}
 
     @Override
     public Boundedness getBoundedness() {
@@ -174,21 +153,21 @@ public class RocketMQSource<OUT>
         //            }
         //        });
 
-        Supplier<SplitReader<Tuple3<OUT, Long, Long>, RocketMQPartitionSplit>> splitReaderSupplier =
-                () ->
-                        new RocketMQPartitionSplitReader<>(
-                                pollTime,
-                                topic,
-                                consumerGroup,
-                                nameServerAddress,
-                                accessKey,
-                                secretKey,
-                                tag,
-                                sql,
-                                stopInMs,
-                                startTime,
-                                startOffset,
-                                deserializationSchema);
+        Supplier<SplitReader<Tuple3<OUT, Long, Long>, RocketMQPartitionSplit>> splitReaderSupplier = null;
+        //() ->
+        //        new RocketMQPartitionSplitReader<>(
+        //                pollTime,
+        //                topic,
+        //                consumerGroup,
+        //                nameServerAddress,
+        //                accessKey,
+        //                secretKey,
+        //                tag,
+        //                sql,
+        //                stopInMs,
+        //                startTime,
+        //                startOffset,
+        //                deserializationSchema);
         RocketMQRecordEmitter<OUT> recordEmitter = new RocketMQRecordEmitter<>();
 
         return new RocketMQSourceReader<>(
@@ -203,19 +182,20 @@ public class RocketMQSource<OUT>
     public SplitEnumerator<RocketMQPartitionSplit, RocketMQSourceEnumState> createEnumerator(
             SplitEnumeratorContext<RocketMQPartitionSplit> enumContext) {
 
-        return new RocketMQSourceEnumerator(
-                topic,
-                consumerGroup,
-                nameServerAddress,
-                accessKey,
-                secretKey,
-                stopInMs,
-                startOffset,
-                partitionDiscoveryIntervalMs,
-                boundedness,
-                enumContext,
-                consumerOffsetMode,
-                consumerOffsetTimestamp);
+        return null;
+        //return new RocketMQSourceEnumerator(
+        //        topic,
+        //        consumerGroup,
+        //        nameServerAddress,
+        //        accessKey,
+        //        secretKey,
+        //        stopInMs,
+        //        startOffset,
+        //        partitionDiscoveryIntervalMs,
+        //        boundedness,
+        //        enumContext,
+        //        consumerOffsetMode,
+        //        consumerOffsetTimestamp);
     }
 
     @Override
@@ -223,20 +203,21 @@ public class RocketMQSource<OUT>
             SplitEnumeratorContext<RocketMQPartitionSplit> enumContext,
             RocketMQSourceEnumState checkpoint) {
 
-        return new RocketMQSourceEnumerator(
-                topic,
-                consumerGroup,
-                nameServerAddress,
-                accessKey,
-                secretKey,
-                stopInMs,
-                startOffset,
-                partitionDiscoveryIntervalMs,
-                boundedness,
-                enumContext,
-                checkpoint.getCurrentAssignment(),
-                consumerOffsetMode,
-                consumerOffsetTimestamp);
+        return null;
+        //return new RocketMQSourceEnumerator(
+        //        topic,
+        //        consumerGroup,
+        //        nameServerAddress,
+        //        accessKey,
+        //        secretKey,
+        //        stopInMs,
+        //        startOffset,
+        //        partitionDiscoveryIntervalMs,
+        //        boundedness,
+        //        enumContext,
+        //        checkpoint.getCurrentAssignment(),
+        //        consumerOffsetMode,
+        //        consumerOffsetTimestamp);
     }
 
     @Override

@@ -22,10 +22,9 @@ import org.apache.flink.api.common.ExecutionConfig;
 import org.apache.flink.api.java.ClosureCleaner;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.connector.base.DeliveryGuarantee;
-import org.apache.flink.connector.rocketmq.common.RocketMQConfigBuilder;
+import org.apache.flink.connector.rocketmq.common.config.RocketMQConfigBuilder;
 import org.apache.flink.connector.rocketmq.sink.writer.serializer.RocketMQSerializationSchema;
 import org.apache.flink.connector.rocketmq.source.RocketMQSource;
-import org.apache.flink.connector.rocketmq.source.RocketMQSourceBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

@@ -23,7 +23,7 @@ import org.apache.flink.configuration.ConfigOptions;
 import org.apache.flink.connector.rocketmq.legacy.RocketMQConfig;
 
 /** Includes config options of RocketMQ connector type. */
-public class RocketMQOptions {
+public class RocketMQSourceOptions {
 
     public static final ConfigOption<String> TOPIC =
             ConfigOptions.key("topic").stringType().noDefaultValue();

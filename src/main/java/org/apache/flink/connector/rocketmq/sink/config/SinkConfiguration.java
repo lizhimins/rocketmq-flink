@@ -20,7 +20,7 @@ package org.apache.flink.connector.rocketmq.sink.config;
 import org.apache.flink.annotation.Experimental;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.connector.base.DeliveryGuarantee;
-import org.apache.flink.connector.rocketmq.common.RocketMQConfiguration;
+import org.apache.flink.connector.rocketmq.common.config.RocketMQConfiguration;
 import org.apache.flink.connector.rocketmq.sink.writer.RocketMQWriter;
 
 import java.util.Objects;

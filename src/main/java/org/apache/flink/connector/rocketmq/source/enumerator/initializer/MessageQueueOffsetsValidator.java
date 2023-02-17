@@ -5,11 +5,11 @@ import org.apache.flink.annotation.Internal;
 import java.util.Properties;
 
 /**
- * Interface for validating {@link OffsetsInitializer} with properties from {@link
+ * Interface for validating {@link MessageQueueOffsets} with properties from {@link
  * org.apache.flink.connector.kafka.source.KafkaSource}.
  */
 @Internal
-public interface OffsetsInitializerValidator {
+public interface MessageQueueOffsetsValidator {
 
     /**
      * Validate offsets initializer with properties of Kafka source.

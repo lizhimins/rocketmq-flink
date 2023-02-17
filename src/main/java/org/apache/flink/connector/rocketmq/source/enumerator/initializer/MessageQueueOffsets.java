@@ -18,6 +18,7 @@
 
 package org.apache.flink.connector.rocketmq.source.enumerator.initializer;
 
+import org.apache.flink.connector.rocketmq.source.RocketMQSource;
 import org.apache.rocketmq.common.consumer.ConsumeFromWhere;
 import org.apache.rocketmq.common.message.MessageQueue;
 
@@ -33,12 +34,12 @@ import java.util.Map;
  * An interface for users to specify the starting / stopping offset of a {@link
  * RocketMQPartitionSplit}.
  *
- * @see ReaderHandledOffsetsInitializer
- * @see SpecifiedOffsetsInitializer
- * @see TimestampOffsetsInitializer
+ * @see ReaderHandledMessageQueueMessageQueueOffsets
+ * @see SpecifiedMessageQueueMessageQueueOffsets
+ * @see TimestampMessageQueueOffsets
  */
 @PublicEvolving
-public interface OffsetsInitializer extends Serializable {
+public interface MessageQueueOffsets extends Serializable {
 
     Map<MessageQueue, Long> getMessageQueueOffsets(
             Collection<MessageQueue> partitions,
@@ -47,13 +48,13 @@ public interface OffsetsInitializer extends Serializable {
     OffsetResetStrategy getAutoOffsetResetStrategy();
 
     /**
-     * An interface that provides necessary information to the {@link OffsetsInitializer} to get the
+     * An interface that provides necessary information to the {@link MessageQueueOffsets} to get the
      * initial offsets of the RocketMQ message queues.
      */
     interface PartitionOffsetsRetriever {
 
         /**
-         * The group id should be the set for {@link RocketMQSource RocketMQSource} before invoking
+         * The group id should be the set for {@link RocketMQSource } before invoking
          * this method. Otherwise, an {@code IllegalStateException} will be thrown.
          */
         Map<MessageQueue, Long> committedOffsets(Collection<MessageQueue> partitions);
@@ -68,81 +69,81 @@ public interface OffsetsInitializer extends Serializable {
     // --------------- factory methods ---------------
 
     /**
-     * Get an {@link OffsetsInitializer} which initializes the offsets to the committed offsets. An
+     * Get an {@link MessageQueueOffsets} which initializes the offsets to the committed offsets. An
      * exception will be thrown at runtime if there is no committed offsets.
      *
      * @return an offset initializer which initialize the offsets to the committed offsets.
      */
-    static OffsetsInitializer committedOffsets() {
+    static MessageQueueOffsets committedOffsets() {
         return committedOffsets(OffsetResetStrategy.LATEST);
     }
 
     /**
-     * Get an {@link OffsetsInitializer} which initializes the offsets to the committed offsets. Use
+     * Get an {@link MessageQueueOffsets} which initializes the offsets to the committed offsets. Use
      * the given {@link OffsetResetStrategy} to initialize the offsets if the committed offsets does
      * not exist.
      *
      * @param offsetResetStrategy the offset reset strategy to use when the committed offsets do not
      *     exist.
-     * @return an {@link OffsetsInitializer} which initializes the offsets to the committed offsets.
+     * @return an {@link MessageQueueOffsets} which initializes the offsets to the committed offsets.
      */
-    static OffsetsInitializer committedOffsets(OffsetResetStrategy offsetResetStrategy) {
-        return new ReaderHandledOffsetsInitializer(
+    static MessageQueueOffsets committedOffsets(OffsetResetStrategy offsetResetStrategy) {
+        return new ReaderHandledMessageQueueMessageQueueOffsets(
                 ConsumeFromWhere.CONSUME_FROM_LAST_OFFSET, offsetResetStrategy);
     }
 
     /// **
-    // * Get an {@link OffsetsInitializer} which initializes the offsets in each partition so that
+    // * Get an {@link MessageQueueOffsets} which initializes the offsets in each partition so that
     // the
     // * initialized offset is the offset of the first record whose record timestamp is greater than
     // * or equals the give timestamp (milliseconds).
     // *
     // * @param timestamp the timestamp (milliseconds) to start the consumption.
-    // * @return an {@link OffsetsInitializer} which initializes the offsets based on the given
+    // * @return an {@link MessageQueueOffsets} which initializes the offsets based on the given
     // *     timestamp.
     // * @see KafkaAdminClient#listOffsets(Map)
     // */
-    // static OffsetsInitializer timestamp(long timestamp) {
-    //    return new TimestampOffsetsInitializer(timestamp);
+    // static MessageQueueOffsets timestamp(long timestamp) {
+    //    return new TimestampMessageQueueOffsets(timestamp);
     // }
 
     /// **
-    // * Get an {@link OffsetsInitializer} which initializes the offsets to the earliest available
+    // * Get an {@link MessageQueueOffsets} which initializes the offsets to the earliest available
     // * offsets of each partition.
     // *
-    // * @return an {@link OffsetsInitializer} which initializes the offsets to the earliest
+    // * @return an {@link MessageQueueOffsets} which initializes the offsets to the earliest
     // available
     // *     offsets.
     // */
-    // static OffsetsInitializer earliest() {
-    //    return new ReaderHandledOffsetsInitializer(
+    // static MessageQueueOffsets earliest() {
+    //    return new ReaderHandledMessageQueueMessageQueueOffsets(
     //            KafkaPartitionSplit.EARLIEST_OFFSET, OffsetResetStrategy.EARLIEST);
     // }
 
     /**
-     * Get an {@link OffsetsInitializer} which initializes the offsets to the latest offsets of each
+     * Get an {@link MessageQueueOffsets} which initializes the offsets to the latest offsets of each
      * partition.
      *
-     * @return an {@link OffsetsInitializer} which initializes the offsets to the latest offsets.
+     * @return an {@link MessageQueueOffsets} which initializes the offsets to the latest offsets.
      */
-    static OffsetsInitializer latest() {
-        return new ReaderHandledOffsetsInitializer(
+    static MessageQueueOffsets latest() {
+        return new ReaderHandledMessageQueueMessageQueueOffsets(
                 ConsumeFromWhere.CONSUME_FROM_LAST_OFFSET, OffsetResetStrategy.LATEST);
     }
 
     /// **
-    // * Get an {@link OffsetsInitializer} which initializes the offsets to the specified offsets.
+    // * Get an {@link MessageQueueOffsets} which initializes the offsets to the specified offsets.
     // *
     // * @param offsets the specified offsets for each partition.
-    // * @return an {@link OffsetsInitializer} which initializes the offsets to the specified
+    // * @return an {@link MessageQueueOffsets} which initializes the offsets to the specified
     // offsets.
     // */
-    // static OffsetsInitializer offsets(Map<TopicPartition, Long> offsets) {
-    //    return new SpecifiedOffsetsInitializer(offsets, OffsetResetStrategy.EARLIEST);
+    // static MessageQueueOffsets offsets(Map<TopicPartition, Long> offsets) {
+    //    return new SpecifiedMessageQueueMessageQueueOffsets(offsets, OffsetResetStrategy.EARLIEST);
     // }
     //
     /// **
-    // * Get an {@link OffsetsInitializer} which initializes the offsets to the specified offsets.
+    // * Get an {@link MessageQueueOffsets} which initializes the offsets to the specified offsets.
     // Use
     // * the given {@link OffsetResetStrategy} to initialize the offsets in case the specified
     // offset
@@ -151,11 +152,11 @@ public interface OffsetsInitializer extends Serializable {
     // * @param offsets the specified offsets for each partition.
     // * @param offsetResetStrategy the {@link OffsetResetStrategy} to use when the specified offset
     // *     is out of range.
-    // * @return an {@link OffsetsInitializer} which initializes the offsets to the specified
+    // * @return an {@link MessageQueueOffsets} which initializes the offsets to the specified
     // offsets.
     // */
-    // static OffsetsInitializer offsets(
+    // static MessageQueueOffsets offsets(
     //        Map<MessageQueue, Long> offsets, OffsetResetStrategy offsetResetStrategy) {
-    //    return new SpecifiedOffsetsInitializer(offsets, offsetResetStrategy);
+    //    return new SpecifiedMessageQueueMessageQueueOffsets(offsets, offsetResetStrategy);
     // }
 }

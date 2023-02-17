@@ -22,8 +22,8 @@ import org.apache.flink.api.common.serialization.DeserializationSchema;
 import org.apache.flink.api.connector.source.Boundedness;
 import org.apache.flink.configuration.ConfigOption;
 import org.apache.flink.configuration.Configuration;
-import org.apache.flink.connector.rocketmq.common.RocketMQConfigBuilder;
-import org.apache.flink.connector.rocketmq.source.enumerator.initializer.OffsetsInitializer;
+import org.apache.flink.connector.rocketmq.common.config.RocketMQConfigBuilder;
+import org.apache.flink.connector.rocketmq.source.enumerator.initializer.MessageQueueOffsets;
 import org.apache.flink.connector.rocketmq.source.reader.deserializer.RocketMQDeserializationSchema;
 import org.apache.rocketmq.client.consumer.DefaultLitePullConsumer;
 import org.apache.rocketmq.common.protocol.heartbeat.MessageModel;
@@ -43,8 +43,8 @@ public class RocketMQSourceBuilder<OUT> {
     protected DefaultLitePullConsumer consumer;
 
     // Users can specify the starting / stopping offset initializer.
-    private OffsetsInitializer startingOffsetsInitializer;
-    private OffsetsInitializer stoppingOffsetsInitializer;
+    private MessageQueueOffsets startingMessageQueueOffsets;
+    private MessageQueueOffsets stoppingMessageQueueOffsets;
 
     // Boundedness
     private Boundedness boundedness;
@@ -101,20 +101,20 @@ public class RocketMQSourceBuilder<OUT> {
         return this.setTopics(Arrays.asList(topics));
     }
 
-    public RocketMQSourceBuilder<OUT> setStartingOffsets(OffsetsInitializer startingOffsetsInitializer) {
-        this.startingOffsetsInitializer = startingOffsetsInitializer;
+    public RocketMQSourceBuilder<OUT> setStartingOffsets(MessageQueueOffsets startingMessageQueueOffsets) {
+        this.startingMessageQueueOffsets = startingMessageQueueOffsets;
         return this;
     }
 
-    public RocketMQSourceBuilder<OUT> setUnbounded(OffsetsInitializer stoppingOffsetsInitializer) {
+    public RocketMQSourceBuilder<OUT> setUnbounded(MessageQueueOffsets stoppingMessageQueueOffsets) {
         this.boundedness = Boundedness.CONTINUOUS_UNBOUNDED;
-        this.stoppingOffsetsInitializer = stoppingOffsetsInitializer;
+        this.stoppingMessageQueueOffsets = stoppingMessageQueueOffsets;
         return this;
     }
 
-    public RocketMQSourceBuilder<OUT> setBounded(OffsetsInitializer stoppingOffsetsInitializer) {
+    public RocketMQSourceBuilder<OUT> setBounded(MessageQueueOffsets stoppingMessageQueueOffsets) {
         this.boundedness = Boundedness.BOUNDED;
-        this.stoppingOffsetsInitializer = stoppingOffsetsInitializer;
+        this.stoppingMessageQueueOffsets = stoppingMessageQueueOffsets;
         return this;
     }
 
@@ -197,8 +197,8 @@ public class RocketMQSourceBuilder<OUT> {
         // sanityCheck();
         // parseAndSetRequiredProperties();
         //return new RocketMQSource<>(
-        //        startingOffsetsInitializer,
-        //        stoppingOffsetsInitializer,
+        //        startingMessageQueueOffsets,
+        //        stoppingMessageQueueOffsets,
         //        boundedness,
         //        deserializationSchema,
         //        props);

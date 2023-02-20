@@ -24,7 +24,4 @@ import org.apache.flink.annotation.Internal;
  * by this implementation.
  */
 @Internal
-public class RocketMQSerializerWrapper {
-
-
-}
+public class RocketMQSerializerWrapper {}

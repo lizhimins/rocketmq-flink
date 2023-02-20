@@ -17,8 +17,6 @@
 
 package org.apache.flink.connector.rocketmq.source.reader;
 
-import org.apache.rocketmq.common.message.Message;
-
 import java.net.SocketAddress;
 import java.util.Map;
 

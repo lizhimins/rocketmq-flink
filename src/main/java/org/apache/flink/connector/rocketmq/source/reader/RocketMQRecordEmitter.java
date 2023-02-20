@@ -19,20 +19,20 @@
 package org.apache.flink.connector.rocketmq.source.reader;
 
 import org.apache.flink.api.connector.source.SourceOutput;
-import org.apache.flink.api.java.tuple.Tuple3;
 import org.apache.flink.connector.base.source.reader.RecordEmitter;
 import org.apache.flink.connector.rocketmq.source.split.RocketMQPartitionSplitState;
 
 /** The {@link RecordEmitter} implementation for {@link RocketMQSourceReader}. */
 public class RocketMQRecordEmitter<T>
-        implements RecordEmitter<Tuple3<T, Long, Long>, T, RocketMQPartitionSplitState> {
+        implements RecordEmitter<SourceMessage<T>, T, RocketMQPartitionSplitState> {
 
     @Override
     public void emitRecord(
-            Tuple3<T, Long, Long> element,
+            SourceMessage<T> element,
             SourceOutput<T> output,
             RocketMQPartitionSplitState splitState) {
-        output.collect(element.f0, element.f2);
-        splitState.setCurrentOffset(element.f1 + 1);
+
+        // output.collect(element.f0, element.f2);
+        // splitState.setCurrentOffset(element.f1 + 1);
     }
 }

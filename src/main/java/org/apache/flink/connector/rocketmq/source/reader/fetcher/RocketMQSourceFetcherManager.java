@@ -17,6 +17,8 @@
 
 package org.apache.flink.connector.rocketmq.source.reader.fetcher;
 
+import org.apache.rocketmq.common.message.MessageQueue;
+
 import org.apache.flink.annotation.Internal;
 import org.apache.flink.connector.base.source.reader.RecordsWithSplitIds;
 import org.apache.flink.connector.base.source.reader.fetcher.SingleThreadFetcherManager;
@@ -25,7 +27,7 @@ import org.apache.flink.connector.base.source.reader.splitreader.SplitReader;
 import org.apache.flink.connector.base.source.reader.synchronization.FutureCompletingBlockingQueue;
 import org.apache.flink.connector.rocketmq.source.reader.SourceMessage;
 import org.apache.flink.connector.rocketmq.source.split.RocketMQPartitionSplit;
-import org.apache.rocketmq.common.message.MessageQueue;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -58,30 +60,30 @@ public class RocketMQSourceFetcherManager<T>
     }
 
     public void commitOffsets(Map<MessageQueue, Long> offsetsToCommit) {
-        //LOG.debug("Committing offsets {}", offsetsToCommit);
-        //if (offsetsToCommit.isEmpty()) {
+        // LOG.debug("Committing offsets {}", offsetsToCommit);
+        // if (offsetsToCommit.isEmpty()) {
         //    return;
-        //}
-        //SplitFetcher<ConsumerRecord<byte[], byte[]>, KafkaPartitionSplit> splitFetcher =
+        // }
+        // SplitFetcher<ConsumerRecord<byte[], byte[]>, KafkaPartitionSplit> splitFetcher =
         //        fetchers.get(0);
-        //if (splitFetcher != null) {
+        // if (splitFetcher != null) {
         //    // The fetcher thread is still running. This should be the majority of the cases.
         //    enqueueOffsetsCommitTask(splitFetcher, offsetsToCommit, callback);
-        //} else {
+        // } else {
         //    splitFetcher = createSplitFetcher();
         //    enqueueOffsetsCommitTask(splitFetcher, offsetsToCommit, callback);
         //    startFetcher(splitFetcher);
-        //}
+        // }
     }
 
     private void enqueueOffsetsCommitTask(
             SplitFetcher<SourceMessage<T>, RocketMQPartitionSplit> splitFetcher,
             Map<MessageQueue, Long> offsetsToCommit) {
 
-        //KafkaPartitionSplitReader kafkaReader =
+        // KafkaPartitionSplitReader kafkaReader =
         //        (KafkaPartitionSplitReader) splitFetcher.getSplitReader();
         //
-        //splitFetcher.enqueueTask(
+        // splitFetcher.enqueueTask(
         //        new SplitFetcherTask() {
         //            @Override
         //            public boolean run() throws IOException {

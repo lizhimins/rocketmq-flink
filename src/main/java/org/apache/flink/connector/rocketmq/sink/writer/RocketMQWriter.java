@@ -24,7 +24,9 @@ import org.apache.flink.connector.rocketmq.sink.committer.RocketMQCommittable;
 import org.apache.flink.connector.rocketmq.sink.producer.FlinkRocketMQInternalProducer;
 import org.apache.flink.connector.rocketmq.sink.writer.context.RocketMQSinkContext;
 import org.apache.flink.connector.rocketmq.sink.writer.serializer.RocketMQSerializationSchema;
+
 import org.apache.flink.shaded.guava30.com.google.common.io.Closer;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -46,26 +48,27 @@ public class RocketMQWriter<IN>
 
     private final RocketMQSerializationSchema<IN> serializationSchema;
 
-    //private final Callback deliveryCallback;
+    // private final Callback deliveryCallback;
     private final RocketMQSinkContext rocketmqSinkContext;
 
-    //private final Map<String, KafkaMetricMutableWrapper> previouslyCreatedMetrics = new HashMap<>();
-    //private final SinkWriterMetricGroup metricGroup;
-    //private final boolean disabledMetrics;
-    //private final Counter numRecordsOutCounter;
-    //private final Counter numBytesOutCounter;
-    //private final Counter numRecordsOutErrorsCounter;
-    //private final ProcessingTimeService timeService;
+    // private final Map<String, KafkaMetricMutableWrapper> previouslyCreatedMetrics = new
+    // HashMap<>();
+    // private final SinkWriterMetricGroup metricGroup;
+    // private final boolean disabledMetrics;
+    // private final Counter numRecordsOutCounter;
+    // private final Counter numBytesOutCounter;
+    // private final Counter numRecordsOutErrorsCounter;
+    // private final ProcessingTimeService timeService;
 
     // Number of outgoing bytes at the latest metric sync
-    //private long latestOutgoingByteTotal;
-    //private Metric byteOutMetric;
+    // private long latestOutgoingByteTotal;
+    // private Metric byteOutMetric;
     private FlinkRocketMQInternalProducer currentProducer;
 
-    //private final RocketMQWriterState kafkaWriterState;
+    // private final RocketMQWriterState kafkaWriterState;
 
     // producer pool only used for exactly once
-    //private final Deque<FlinkKafkaInternalProducer<byte[], byte[]>> producerPool =
+    // private final Deque<FlinkKafkaInternalProducer<byte[], byte[]>> producerPool =
     //        new ArrayDeque<>();
     private final Closer closer = Closer.create();
     private long lastCheckpointId;
@@ -86,19 +89,16 @@ public class RocketMQWriter<IN>
     }
 
     @Override
-    public Collection<RocketMQCommittable> prepareCommit() throws IOException, InterruptedException {
+    public Collection<RocketMQCommittable> prepareCommit()
+            throws IOException, InterruptedException {
         return null;
     }
 
     @Override
-    public void write(IN element, Context context) throws IOException, InterruptedException {
-
-    }
+    public void write(IN element, Context context) throws IOException, InterruptedException {}
 
     @Override
-    public void flush(boolean endOfInput) throws IOException, InterruptedException {
-
-    }
+    public void flush(boolean endOfInput) throws IOException, InterruptedException {}
 
     @Override
     public void writeWatermark(Watermark watermark) throws IOException, InterruptedException {
@@ -106,7 +106,5 @@ public class RocketMQWriter<IN>
     }
 
     @Override
-    public void close() throws Exception {
-
-    }
+    public void close() throws Exception {}
 }

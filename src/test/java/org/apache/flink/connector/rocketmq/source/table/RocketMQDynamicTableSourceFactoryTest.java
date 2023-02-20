@@ -61,7 +61,7 @@ public class RocketMQDynamicTableSourceFactoryTest {
         options.put("connector", IDENTIFIER);
         options.put(RocketMQSourceOptions.TOPIC.key(), TOPIC);
         options.put(RocketMQSourceOptions.CONSUMER_GROUP.key(), CONSUMER_GROUP);
-        //options.put(RocketMQSourceOptions.PERSIST_OFFSET_INTERVAL.key(), NAME_SERVER_ADDRESS);
+        // options.put(RocketMQSourceOptions.PERSIST_OFFSET_INTERVAL.key(), NAME_SERVER_ADDRESS);
         final DynamicTableSource tableSource = createTableSource(options);
         assertTrue(tableSource instanceof RocketMQScanTableSource);
         assertEquals(RocketMQScanTableSource.class.getName(), tableSource.asSummaryString());
@@ -82,7 +82,7 @@ public class RocketMQDynamicTableSourceFactoryTest {
         final Map<String, String> options = new HashMap<>();
         options.put(RocketMQSourceOptions.TOPIC.key(), TOPIC);
         options.put(RocketMQSourceOptions.CONSUMER_GROUP.key(), CONSUMER_GROUP);
-        //options.put(RocketMQSourceOptions.PERSIST_OFFSET_INTERVAL.key(), NAME_SERVER_ADDRESS);
+        // options.put(RocketMQSourceOptions.PERSIST_OFFSET_INTERVAL.key(), NAME_SERVER_ADDRESS);
         options.put("unknown", "test_option");
         createTableSource(options);
     }
@@ -93,7 +93,7 @@ public class RocketMQDynamicTableSourceFactoryTest {
         options.put("connector", IDENTIFIER);
         options.put(RocketMQSourceOptions.TOPIC.key(), TOPIC);
         options.put(RocketMQSourceOptions.CONSUMER_GROUP.key(), CONSUMER_GROUP);
-        //options.put(RocketMQSourceOptions.PERSIST_OFFSET_INTERVAL.key(), NAME_SERVER_ADDRESS);
+        // options.put(RocketMQSourceOptions.PERSIST_OFFSET_INTERVAL.key(), NAME_SERVER_ADDRESS);
         options.put(
                 RocketMQSourceOptions.OPTIONAL_SQL.key(),
                 "(TAGS is not null and TAGS in ('TagA', 'TagB'))");

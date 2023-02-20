@@ -61,8 +61,8 @@ public class RocketMQDynamicTableSinkFactoryTest {
         final Map<String, String> options = new HashMap<>();
         options.put("connector", IDENTIFIER);
         options.put(RocketMQSourceOptions.TOPIC.key(), TOPIC);
-        //options.put(RocketMQSourceOptions.PRODUCER_GROUP.key(), PRODUCER_GROUP);
-        //options.put(RocketMQSourceOptions.PERSIST_OFFSET_INTERVAL.key(), NAME_SERVER_ADDRESS);
+        // options.put(RocketMQSourceOptions.PRODUCER_GROUP.key(), PRODUCER_GROUP);
+        // options.put(RocketMQSourceOptions.PERSIST_OFFSET_INTERVAL.key(), NAME_SERVER_ADDRESS);
         final DynamicTableSink tableSink = createDynamicTableSink(options);
         assertTrue(tableSink instanceof RocketMQDynamicTableSink);
         assertEquals(RocketMQDynamicTableSink.class.getName(), tableSink.asSummaryString());
@@ -73,7 +73,7 @@ public class RocketMQDynamicTableSinkFactoryTest {
         final Map<String, String> options = new HashMap<>();
         options.put("connector", IDENTIFIER);
         options.put(RocketMQSourceOptions.TOPIC.key(), TOPIC);
-        //options.put(RocketMQSourceOptions.PRODUCER_GROUP.key(), PRODUCER_GROUP);
+        // options.put(RocketMQSourceOptions.PRODUCER_GROUP.key(), PRODUCER_GROUP);
         options.put(RocketMQSourceOptions.OPTIONAL_TAG.key(), "test_tag");
         createDynamicTableSink(options);
     }
@@ -82,8 +82,8 @@ public class RocketMQDynamicTableSinkFactoryTest {
     public void testRocketMQDynamicTableSinkWithUnknownOption() {
         final Map<String, String> options = new HashMap<>();
         options.put(RocketMQSourceOptions.TOPIC.key(), TOPIC);
-        //options.put(RocketMQSourceOptions.PRODUCER_GROUP.key(), PRODUCER_GROUP);
-        //options.put(RocketMQSourceOptions.PERSIST_OFFSET_INTERVAL.key(), NAME_SERVER_ADDRESS);
+        // options.put(RocketMQSourceOptions.PRODUCER_GROUP.key(), PRODUCER_GROUP);
+        // options.put(RocketMQSourceOptions.PERSIST_OFFSET_INTERVAL.key(), NAME_SERVER_ADDRESS);
         options.put("unknown", "test_option");
         createDynamicTableSink(options);
     }

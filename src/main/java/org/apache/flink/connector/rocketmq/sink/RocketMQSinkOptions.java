@@ -24,15 +24,21 @@ import org.apache.flink.connector.rocketmq.common.config.RocketMQOptions;
 public class RocketMQSinkOptions extends RocketMQOptions {
 
     public static final ConfigOption<String> TOPIC =
-            ConfigOptions.key("topic").stringType().noDefaultValue()
+            ConfigOptions.key("topic")
+                    .stringType()
+                    .noDefaultValue()
                     .withDescription("The name of the persist topic");
 
     public static final ConfigOption<String> TAG =
-            ConfigOptions.key("tag").stringType().noDefaultValue()
+            ConfigOptions.key("tag")
+                    .stringType()
+                    .noDefaultValue()
                     .withDescription("The name of the persist topic");
 
     public static final ConfigOption<String> KEY =
-            ConfigOptions.key("key").stringType().noDefaultValue()
+            ConfigOptions.key("key")
+                    .stringType()
+                    .noDefaultValue()
                     .withDescription("The name of the persist topic");
 
     public static final ConfigOption<String> PRODUCER_GROUP =

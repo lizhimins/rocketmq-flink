@@ -17,7 +17,6 @@
 
 package org.apache.flink.connector.rocketmq.source.config;
 
-import org.apache.flink.api.connector.source.Boundedness;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.connector.rocketmq.common.config.RocketMQConfiguration;
 
@@ -34,8 +33,8 @@ public class SourceConfiguration extends RocketMQConfiguration {
     private final int maxFetchRecords;
     private final OffsetVerification verifyInitialOffsets;
     private final String subscriptionName;
-    //private final SubscriptionType subscriptionType;
-    //private final SubscriptionMode subscriptionMode;
+    // private final SubscriptionType subscriptionType;
+    // private final SubscriptionMode subscriptionMode;
     private final boolean allowKeySharedOutOfOrderDelivery;
 
     /**
@@ -59,28 +58,28 @@ public class SourceConfiguration extends RocketMQConfiguration {
         this.allowKeySharedOutOfOrderDelivery = false;
     }
 
-    //private final String consumerOffsetMode;
-    //private final long consumerOffsetTimestamp;
+    // private final String consumerOffsetMode;
+    // private final long consumerOffsetTimestamp;
     //
-    ///** The topic used for this RocketMQSource. */
-    //private final String topic;
-    ///** The consumer group used for this RocketMQSource. */
-    //private final String consumerGroup;
-    ///** The name server address used for this RocketMQSource. */
-    //private final String nameServerAddress;
-    ///** The stop timestamp for this RocketMQSource. */
+    /// ** The topic used for this RocketMQSource. */
+    // private final String topic;
+    /// ** The consumer group used for this RocketMQSource. */
+    // private final String consumerGroup;
+    /// ** The name server address used for this RocketMQSource. */
+    // private final String nameServerAddress;
+    /// ** The stop timestamp for this RocketMQSource. */
     //
-    //private final long stopInMs;
-    ///** The start offset for this RocketMQSource. */
-    //private final long startOffset;
-    ///** The partition discovery interval for this RocketMQSource. */
-    //private final long partitionDiscoveryIntervalMs;
-    ///** The boundedness of this RocketMQSource. */
-    //private final Boundedness boundedness;
+    // private final long stopInMs;
+    /// ** The start offset for this RocketMQSource. */
+    // private final long startOffset;
+    /// ** The partition discovery interval for this RocketMQSource. */
+    // private final long partitionDiscoveryIntervalMs;
+    /// ** The boundedness of this RocketMQSource. */
+    // private final Boundedness boundedness;
 
-    ///** The accessKey used for this RocketMQSource. */
-    //private final String accessKey;
-    ///** The secretKey used for this RocketMQSource. */
-    //private final String secretKey;
+    /// ** The accessKey used for this RocketMQSource. */
+    // private final String accessKey;
+    /// ** The secretKey used for this RocketMQSource. */
+    // private final String secretKey;
 
 }

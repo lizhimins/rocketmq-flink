@@ -138,9 +138,7 @@ public class RocketMQScanTableSource implements ScanTableSource, SupportsReading
             //                consumerOffsetMode,
             //                consumerOffsetTimestamp));
 
-            return SourceProvider.of(new RocketMQSource<>(
-                    null, null, null,
-                    null, null, null));
+            return SourceProvider.of(new RocketMQSource<>(null, null, null, null, null, null));
         } else {
             return SourceFunctionProvider.of(
                     new RocketMQSourceFunction<>(

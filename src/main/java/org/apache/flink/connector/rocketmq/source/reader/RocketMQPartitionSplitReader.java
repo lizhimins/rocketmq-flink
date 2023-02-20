@@ -26,11 +26,14 @@ import org.apache.rocketmq.client.exception.MQClientException;
 import org.apache.rocketmq.common.message.MessageExt;
 import org.apache.rocketmq.common.message.MessageQueue;
 
+import org.apache.flink.api.connector.source.SourceReaderContext;
 import org.apache.flink.api.java.tuple.Tuple3;
 import org.apache.flink.connector.base.source.reader.RecordsWithSplitIds;
 import org.apache.flink.connector.base.source.reader.splitreader.SplitReader;
 import org.apache.flink.connector.base.source.reader.splitreader.SplitsAddition;
 import org.apache.flink.connector.base.source.reader.splitreader.SplitsChange;
+import org.apache.flink.connector.rocketmq.source.config.SourceConfiguration;
+import org.apache.flink.connector.rocketmq.source.metrics.RocketMQSourceReaderMetrics;
 import org.apache.flink.connector.rocketmq.source.reader.deserializer.RocketMQDeserializationSchema;
 import org.apache.flink.connector.rocketmq.source.split.RocketMQPartitionSplit;
 import org.apache.flink.util.Collector;
@@ -60,31 +63,47 @@ import java.util.Set;
  * <p>The returned type are in the format of {@code tuple3(record, offset and timestamp}.
  */
 public class RocketMQPartitionSplitReader<T>
-        implements SplitReader<Tuple3<T, Long, Long>, RocketMQPartitionSplit> {
+        implements SplitReader<SourceMessage<T>, RocketMQPartitionSplit> {
     private static final Logger LOG = LoggerFactory.getLogger(RocketMQPartitionSplitReader.class);
 
-    private final String topic;
-    private final String tag;
-    private final String sql;
-    private final long stopInMs;
-    private final long startTime;
-    private final long startOffset;
+    private String topic;
+    private String tag;
+    private String sql;
+    private long stopInMs;
+    private long startTime;
+    private long startOffset;
 
-    private final long pollTime;
+    private long pollTime;
 
-    private final String accessKey;
-    private final String secretKey;
+    private String accessKey;
+    private String secretKey;
 
-    private final RocketMQDeserializationSchema<T> deserializationSchema;
-    private final Map<Tuple3<String, String, Integer>, Long> startingOffsets;
-    private final Map<Tuple3<String, String, Integer>, Long> stoppingTimestamps;
-    private final SimpleCollector<T> collector;
+    private Map<Tuple3<String, String, Integer>, Long> startingOffsets;
+    private Map<Tuple3<String, String, Integer>, Long> stoppingTimestamps;
+    private SimpleCollector<T> collector;
 
     private DefaultLitePullConsumer consumer;
 
     private volatile boolean wakeup = false;
 
     private static final int MAX_MESSAGE_NUMBER_PER_BLOCK = 64;
+
+    private SourceConfiguration configuration;
+    private SourceReaderContext sourceReaderContext;
+    private RocketMQDeserializationSchema<T> deserializationSchema;
+    private RocketMQSourceReaderMetrics rocketMQSourceReaderMetrics;
+
+    public RocketMQPartitionSplitReader(
+            SourceConfiguration configuration,
+            SourceReaderContext sourceReaderContext,
+            RocketMQDeserializationSchema<T> deserializationSchema,
+            RocketMQSourceReaderMetrics rocketMQSourceReaderMetrics) {
+
+        this.configuration = configuration;
+        this.sourceReaderContext = sourceReaderContext;
+        this.deserializationSchema = deserializationSchema;
+        this.rocketMQSourceReaderMetrics = rocketMQSourceReaderMetrics;
+    }
 
     public RocketMQPartitionSplitReader(
             long pollTime,
@@ -116,8 +135,8 @@ public class RocketMQPartitionSplitReader<T>
     }
 
     @Override
-    public RecordsWithSplitIds<Tuple3<T, Long, Long>> fetch() throws IOException {
-        RocketMQPartitionSplitRecords<Tuple3<T, Long, Long>> recordsBySplits =
+    public RecordsWithSplitIds<SourceMessage<T>> fetch() throws IOException {
+        RocketMQPartitionSplitRecords<SourceMessage<T>> recordsBySplits =
                 new RocketMQPartitionSplitRecords<>();
         Collection<MessageQueue> messageQueues;
         try {
@@ -205,7 +224,7 @@ public class RocketMQPartitionSplitReader<T>
                             e);
                 }
                 if (messageExts != null) {
-                    Collection<Tuple3<T, Long, Long>> recordsForSplit =
+                    Collection<SourceMessage<T>> recordsForSplit =
                             recordsBySplits.recordsForSplit(
                                     messageQueue.getTopic()
                                             + "-"
@@ -227,16 +246,17 @@ public class RocketMQPartitionSplitReader<T>
                         try {
                             deserializationSchema.deserialize(
                                     Collections.singletonList(messageExt), collector);
-                            collector
-                                    .getRecords()
-                                    .forEach(
-                                            r ->
-                                                    recordsForSplit.add(
-                                                            new Tuple3<>(
-                                                                    r,
-                                                                    messageExt.getQueueOffset(),
-                                                                    messageExt
-                                                                            .getStoreTimestamp())));
+                            // collector
+                            //        .getRecords()
+                            //        .forEach(
+                            //                r ->
+                            //                        recordsForSplit.add(
+                            //                                new Tuple3<>(
+                            //                                        r,
+                            //                                        messageExt.getQueueOffset(),
+                            //                                        messageExt
+                            //
+                            // .getStoreTimestamp())));
                         } catch (Exception e) {
                             throw new IOException(
                                     "Failed to deserialize consumer record due to", e);
@@ -294,7 +314,7 @@ public class RocketMQPartitionSplitReader<T>
             Tuple3<String, String, Integer> topicPartition,
             long stoppingTimestamp,
             long currentOffset,
-            RocketMQPartitionSplitRecords<Tuple3<T, Long, Long>> recordsBySplits) {
+            RocketMQPartitionSplitRecords<SourceMessage<T>> recordsBySplits) {
         LOG.debug(
                 "{} has reached stopping timestamp {}, current offset is {}",
                 topicPartition.f0 + "-" + topicPartition.f1,

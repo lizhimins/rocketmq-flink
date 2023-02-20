@@ -48,11 +48,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-/**
- * The row based implementation of {@link QueryableSchema} for the deserialization of records.
- */
-public class RowDeserializationSchema
-        implements QueryableSchema<List<BytesMessage>, RowData> {
+/** The row based implementation of {@link QueryableSchema} for the deserialization of records. */
+public class RowDeserializationSchema implements QueryableSchema<List<BytesMessage>, RowData> {
 
     private static final long serialVersionUID = -1L;
     private static final Logger LOGGER = LoggerFactory.getLogger(RowDeserializationSchema.class);

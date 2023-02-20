@@ -22,9 +22,7 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.Optional;
 
-/**
- * Abstract message only used for {@link Producer}.
- */
+/** Abstract message only used for {@link Producer}. */
 public interface RocketMQSinkMessage<T> {
 
     /**
@@ -35,16 +33,16 @@ public interface RocketMQSinkMessage<T> {
     String getTopic();
 
     /**
-     * Get the <strong>deep copy</strong> of message body, which means any modification of return value does not
-     * affect the built-in message body.
+     * Get the <strong>deep copy</strong> of message body, which means any modification of return
+     * value does not affect the built-in message body.
      *
      * @return the <strong>deep copy</strong> of message body.
      */
     ByteBuffer getBody();
 
     /**
-     * Get the <strong>deep copy</strong> of message properties, which means any modification of return value does
-     * not affect the built-in properties.
+     * Get the <strong>deep copy</strong> of message properties, which means any modification of
+     * return value does not affect the built-in properties.
      *
      * @return copy of message properties.
      */
@@ -53,38 +51,43 @@ public interface RocketMQSinkMessage<T> {
     /**
      * Get the tag of message, which is the second classifier besides topic.
      *
-     * @return the tag of message, which is optional, {@link Optional#empty()} means tag does not exist.
+     * @return the tag of message, which is optional, {@link Optional#empty()} means tag does not
+     *     exist.
      */
     Optional<String> getTag();
 
     /**
-     * Get the key collection of message, which means any modification of return value does not affect the built-in
-     * message key collection.
+     * Get the key collection of message, which means any modification of return value does not
+     * affect the built-in message key collection.
      *
-     * @return copy of key collection of message, empty collection means message key is not specified.
+     * @return copy of key collection of message, empty collection means message key is not
+     *     specified.
      */
     Collection<String> getKeys();
 
     /**
      * Get the message group, which make sense only when topic type is fifo.
      *
-     * @return message group, which is optional, {@link Optional#empty()} means message group is not specified.
+     * @return message group, which is optional, {@link Optional#empty()} means message group is not
+     *     specified.
      */
     Optional<String> getMessageGroup();
 
     /**
-     * Get the parent trace context, see
-     * <a href="https://opentelemetry.io/docs/concepts/signals/traces/#trace-context">OpenTelemetry Trace context</a>.
+     * Get the parent trace context, see <a
+     * href="https://opentelemetry.io/docs/concepts/signals/traces/#trace-context">OpenTelemetry
+     * Trace context</a>.
      *
-     * @return parent trace context, which is optional, {@link Optional#empty()} means trace context is not specified.
+     * @return parent trace context, which is optional, {@link Optional#empty()} means trace context
+     *     is not specified.
      */
     Optional<String> getParentTraceContext();
 
     /**
      * Get the expected delivery timestamp, which make sense only when topic type is delay.
      *
-     * @return message expected delivery timestamp, which is optional, {@link Optional#empty()} means delivery
-     * timestamp is not specified.
+     * @return message expected delivery timestamp, which is optional, {@link Optional#empty()}
+     *     means delivery timestamp is not specified.
      */
     Optional<Long> getDeliveryTimestamp();
 }

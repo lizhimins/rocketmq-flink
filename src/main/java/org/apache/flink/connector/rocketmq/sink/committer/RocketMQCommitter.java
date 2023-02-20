@@ -17,21 +17,9 @@
 
 package org.apache.flink.connector.rocketmq.sink.committer;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import javax.annotation.Nullable;
-
-import java.io.Closeable;
-import java.io.IOException;
-import java.util.Collection;
-import java.util.Optional;
-import java.util.Properties;
-
 /**
  * Committer implementation for {@link KafkaSink}
  *
  * <p>The committer is responsible to finalize the Kafka transactions by committing them.
  */
-public class RocketMQCommitter {
-}
+public class RocketMQCommitter {}

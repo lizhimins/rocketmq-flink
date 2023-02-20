@@ -17,5 +17,4 @@
 
 package org.apache.flink.connector.rocketmq.sink.writer.message;
 
-public class RocketMQSinkMessageBuilder {
-}
+public class RocketMQSinkMessageBuilder {}

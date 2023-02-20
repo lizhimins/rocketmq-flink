@@ -64,7 +64,7 @@ public class RocketMQDynamicTableSinkFactory implements DynamicTableSinkFactory 
         Set<ConfigOption<?>> requiredOptions = new HashSet<>();
         requiredOptions.add(TOPIC);
         requiredOptions.add(PRODUCER_GROUP);
-        //requiredOptions.add(PERSIST_OFFSET_INTERVAL);
+        // requiredOptions.add(PERSIST_OFFSET_INTERVAL);
         return requiredOptions;
     }
 
@@ -72,13 +72,13 @@ public class RocketMQDynamicTableSinkFactory implements DynamicTableSinkFactory 
     public Set<ConfigOption<?>> optionalOptions() {
         Set<ConfigOption<?>> optionalOptions = new HashSet<>();
         optionalOptions.add(TAG);
-        //optionalOptions.add(OPTIONAL_WRITE_RETRY_TIMES);
-        //optionalOptions.add(OPTIONAL_WRITE_SLEEP_TIME_MS);
-        //optionalOptions.add(OPTIONAL_WRITE_IS_DYNAMIC_TAG);
-        //optionalOptions.add(OPTIONAL_WRITE_DYNAMIC_TAG_COLUMN);
-        //optionalOptions.add(OPTIONAL_WRITE_DYNAMIC_TAG_COLUMN_WRITE_INCLUDED);
-        //optionalOptions.add(OPTIONAL_WRITE_KEYS_TO_BODY);
-        //optionalOptions.add(OPTIONAL_WRITE_KEY_COLUMNS);
+        // optionalOptions.add(OPTIONAL_WRITE_RETRY_TIMES);
+        // optionalOptions.add(OPTIONAL_WRITE_SLEEP_TIME_MS);
+        // optionalOptions.add(OPTIONAL_WRITE_IS_DYNAMIC_TAG);
+        // optionalOptions.add(OPTIONAL_WRITE_DYNAMIC_TAG_COLUMN);
+        // optionalOptions.add(OPTIONAL_WRITE_DYNAMIC_TAG_COLUMN_WRITE_INCLUDED);
+        // optionalOptions.add(OPTIONAL_WRITE_KEYS_TO_BODY);
+        // optionalOptions.add(OPTIONAL_WRITE_KEY_COLUMNS);
         optionalOptions.add(OPTIONAL_ENCODING);
         optionalOptions.add(OPTIONAL_FIELD_DELIMITER);
         optionalOptions.add(OPTIONAL_ACCESS_KEY);

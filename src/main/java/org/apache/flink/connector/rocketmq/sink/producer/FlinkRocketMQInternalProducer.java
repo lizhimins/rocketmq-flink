@@ -21,11 +21,7 @@ import org.apache.flink.connector.rocketmq.sink.writer.message.RocketMQSinkMessa
 
 public interface FlinkRocketMQInternalProducer {
 
-    interface RocketMQSendResult {
-
-    }
+    interface RocketMQSendResult {}
 
     RocketMQSendResult send(RocketMQSinkMessage<?> message);
-
-
 }

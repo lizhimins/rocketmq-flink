@@ -18,9 +18,7 @@
 
 package org.apache.flink.connector.rocketmq.source.split;
 
-/**
- * This class extends RocketMQPartitionSplit to track a mutable current offset.
- */
+/** This class extends RocketMQPartitionSplit to track a mutable current offset. */
 public class RocketMQPartitionSplitState extends RocketMQPartitionSplit {
 
     private long currentOffset;

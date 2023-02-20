@@ -19,8 +19,6 @@ package org.apache.flink.connector.rocketmq.sink.committer;
 
 import org.apache.flink.annotation.Internal;
 
-import java.util.Objects;
-
 /** The writer state for Pulsar connector. We would used in Pulsar committer. */
 @Internal
 public class RocketMQCommittable {

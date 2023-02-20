@@ -17,4 +17,9 @@
 
 package org.apache.flink.connector.rocketmq.source.metrics;
 
-public class RocketMQSourceReaderMetrics {}
+import org.apache.flink.metrics.groups.SourceReaderMetricGroup;
+
+public class RocketMQSourceReaderMetrics {
+
+    public RocketMQSourceReaderMetrics(SourceReaderMetricGroup sourceReaderMetricGroup) {}
+}

@@ -28,10 +28,10 @@ import java.util.Objects;
 public class SinkConfiguration extends RocketMQConfiguration {
 
     private final DeliveryGuarantee deliveryGuarantee = DeliveryGuarantee.AT_LEAST_ONCE;
-    //private final long transactionTimeoutMillis;
-    //private final long topicMetadataRefreshInterval;
-    //private final int partitionSwitchSize;
-    //private final boolean enableSchemaEvolution;
+    // private final long transactionTimeoutMillis;
+    // private final long topicMetadataRefreshInterval;
+    // private final int partitionSwitchSize;
+    // private final boolean enableSchemaEvolution;
     private final int maxPendingMessages;
     private final int maxRecommitTimes;
 
@@ -44,22 +44,19 @@ public class SinkConfiguration extends RocketMQConfiguration {
     protected SinkConfiguration(Configuration configuration) {
         super(configuration);
 
-        //this.deliveryGuarantee = get(PULSAR_WRITE_DELIVERY_GUARANTEE);
-        //this.transactionTimeoutMillis = getLong(PULSAR_WRITE_TRANSACTION_TIMEOUT);
-        //this.topicMetadataRefreshInterval = getLong(PULSAR_TOPIC_METADATA_REFRESH_INTERVAL);
-        //this.partitionSwitchSize = getInteger(PULSAR_BATCHING_MAX_MESSAGES);
-        //this.enableSchemaEvolution = get(PULSAR_WRITE_SCHEMA_EVOLUTION);
-        //this.maxPendingMessages = get(PULSAR_MAX_PENDING_MESSAGES_ON_PARALLELISM);
-        //this.maxRecommitTimes = get(PULSAR_MAX_RECOMMIT_TIMES);
+        // this.deliveryGuarantee = get(PULSAR_WRITE_DELIVERY_GUARANTEE);
+        // this.transactionTimeoutMillis = getLong(PULSAR_WRITE_TRANSACTION_TIMEOUT);
+        // this.topicMetadataRefreshInterval = getLong(PULSAR_TOPIC_METADATA_REFRESH_INTERVAL);
+        // this.partitionSwitchSize = getInteger(PULSAR_BATCHING_MAX_MESSAGES);
+        // this.enableSchemaEvolution = get(PULSAR_WRITE_SCHEMA_EVOLUTION);
+        // this.maxPendingMessages = get(PULSAR_MAX_PENDING_MESSAGES_ON_PARALLELISM);
+        // this.maxRecommitTimes = get(PULSAR_MAX_RECOMMIT_TIMES);
 
         this.maxPendingMessages = 10;
         this.maxRecommitTimes = 3;
     }
 
-
-    /**
-     * The delivery guarantee changes the behavior of {@link RocketMQWriter}.
-     */
+    /** The delivery guarantee changes the behavior of {@link RocketMQWriter}. */
     public DeliveryGuarantee getDeliveryGuarantee() {
         return deliveryGuarantee;
     }
@@ -71,29 +68,31 @@ public class SinkConfiguration extends RocketMQConfiguration {
      * sure this value is greater than the checkpoint interval. Create a pulsar producer builder by
      * using the given Configuration.
      */
-    //public long getTransactionTimeoutMillis() {
+    // public long getTransactionTimeoutMillis() {
     //    return transactionTimeoutMillis;
-    //}
+    // }
     //
-    ///**
-    // * Auto-update the topic metadata in a fixed interval (in ms). The default value is 30 minutes.
+    /// **
+    // * Auto-update the topic metadata in a fixed interval (in ms). The default value is 30
+    // minutes.
     // */
-    //public long getTopicMetadataRefreshInterval() {
+    // public long getTopicMetadataRefreshInterval() {
     //    return topicMetadataRefreshInterval;
-    //}
+    // }
     //
-    ///**
-    // * Switch the partition to write when we have written the given size of messages. It's used for
+    /// **
+    // * Switch the partition to write when we have written the given size of messages. It's used
+    // for
     // * a round-robin topic router.
     // */
-    //public int getPartitionSwitchSize() {
+    // public int getPartitionSwitchSize() {
     //    return partitionSwitchSize;
-    //}
+    // }
 
-    ///** The message key's hash logic for routing the message into one Pulsar partition. */
-    //public MessageKeyHash getMessageKeyHash() {
+    /// ** The message key's hash logic for routing the message into one Pulsar partition. */
+    // public MessageKeyHash getMessageKeyHash() {
     //    return messageKeyHash;
-    //}
+    // }
 
     /**
      * If we should serialize and send the message with a specified Pulsar {@link Schema} instead
@@ -112,9 +111,7 @@ public class SinkConfiguration extends RocketMQConfiguration {
         return maxPendingMessages;
     }
 
-    /**
-     * The maximum allowed recommitting time for a Pulsar transaction.
-     */
+    /** The maximum allowed recommitting time for a Pulsar transaction. */
     public int getMaxRecommitTimes() {
         return maxRecommitTimes;
     }
@@ -133,7 +130,7 @@ public class SinkConfiguration extends RocketMQConfiguration {
         SinkConfiguration that = (SinkConfiguration) o;
 
         return false;
-        //return transactionTimeoutMillis == that.transactionTimeoutMillis
+        // return transactionTimeoutMillis == that.transactionTimeoutMillis
         //        && topicMetadataRefreshInterval == that.topicMetadataRefreshInterval
         //        && partitionSwitchSize == that.partitionSwitchSize
         //        && enableSchemaEvolution == that.enableSchemaEvolution

@@ -19,13 +19,13 @@
 package org.apache.flink.connector.rocketmq.source.reader;
 
 import org.apache.flink.api.connector.source.SourceReaderContext;
-import org.apache.flink.api.java.tuple.Tuple3;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.connector.base.source.reader.RecordEmitter;
 import org.apache.flink.connector.base.source.reader.RecordsWithSplitIds;
 import org.apache.flink.connector.base.source.reader.SingleThreadMultiplexSourceReaderBase;
 import org.apache.flink.connector.base.source.reader.splitreader.SplitReader;
 import org.apache.flink.connector.base.source.reader.synchronization.FutureCompletingBlockingQueue;
+import org.apache.flink.connector.rocketmq.source.metrics.RocketMQSourceReaderMetrics;
 import org.apache.flink.connector.rocketmq.source.split.RocketMQPartitionSplit;
 import org.apache.flink.connector.rocketmq.source.split.RocketMQPartitionSplitState;
 
@@ -35,16 +35,20 @@ import java.util.function.Supplier;
 /** The source reader for RocketMQ partitions. */
 public class RocketMQSourceReader<T>
         extends SingleThreadMultiplexSourceReaderBase<
-                Tuple3<T, Long, Long>, T, RocketMQPartitionSplit, RocketMQPartitionSplitState> {
+                SourceMessage<T>, T, RocketMQPartitionSplit, RocketMQPartitionSplitState> {
+
+    private final RocketMQSourceReaderMetrics rocketMQSourceReaderMetrics;
 
     public RocketMQSourceReader(
-            FutureCompletingBlockingQueue<RecordsWithSplitIds<Tuple3<T, Long, Long>>> elementsQueue,
-            Supplier<SplitReader<Tuple3<T, Long, Long>, RocketMQPartitionSplit>>
-                    splitReaderSupplier,
-            RecordEmitter<Tuple3<T, Long, Long>, T, RocketMQPartitionSplitState> recordEmitter,
+            FutureCompletingBlockingQueue<RecordsWithSplitIds<SourceMessage<T>>> elementsQueue,
+            Supplier<SplitReader<SourceMessage<T>, RocketMQPartitionSplit>> splitReaderSupplier,
+            RecordEmitter<SourceMessage<T>, T, RocketMQPartitionSplitState> recordEmitter,
             Configuration config,
-            SourceReaderContext context) {
+            SourceReaderContext context,
+            RocketMQSourceReaderMetrics rocketMQSourceReaderMetrics) {
+
         super(elementsQueue, splitReaderSupplier, recordEmitter, config, context);
+        this.rocketMQSourceReaderMetrics = rocketMQSourceReaderMetrics;
     }
 
     @Override

@@ -76,9 +76,7 @@ public class RocketMQConfiguration extends UnmodifiableConfiguration {
         return properties;
     }
 
-    /**
-     * Get an option value from the given config, convert it into a new value instance.
-     */
+    /** Get an option value from the given config, convert it into a new value instance. */
     public <F, T> T get(ConfigOption<F> option, Function<F, T> convertor) {
         F value = get(option);
         if (value != null) {
@@ -88,9 +86,7 @@ public class RocketMQConfiguration extends UnmodifiableConfiguration {
         }
     }
 
-    /**
-     * Set the config option's value to a given builder.
-     */
+    /** Set the config option's value to a given builder. */
     public <T> void useOption(ConfigOption<T> option, Consumer<T> setter) {
         useOption(option, identity(), setter);
     }

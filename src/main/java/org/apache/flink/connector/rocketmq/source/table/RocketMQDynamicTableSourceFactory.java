@@ -59,7 +59,7 @@ public class RocketMQDynamicTableSourceFactory implements DynamicTableSourceFact
         Set<ConfigOption<?>> requiredOptions = new HashSet<>();
         requiredOptions.add(RocketMQSourceOptions.TOPIC);
         requiredOptions.add(RocketMQSourceOptions.CONSUMER_GROUP);
-        //requiredOptions.add(RocketMQSourceOptions.PERSIST_OFFSET_INTERVAL);
+        // requiredOptions.add(RocketMQSourceOptions.PERSIST_OFFSET_INTERVAL);
         return requiredOptions;
     }
 
@@ -73,7 +73,7 @@ public class RocketMQDynamicTableSourceFactory implements DynamicTableSourceFact
         optionalOptions.add(RocketMQSourceOptions.OPTIONAL_START_TIME);
         optionalOptions.add(RocketMQSourceOptions.OPTIONAL_STOP_TIME);
         optionalOptions.add(RocketMQSourceOptions.OPTIONAL_TIME_ZONE);
-        //optionalOptions.add(RocketMQSourceOptions.OPTIONAL_PARTITION_DISCOVERY_INTERVAL_MS);
+        // optionalOptions.add(RocketMQSourceOptions.OPTIONAL_PARTITION_DISCOVERY_INTERVAL_MS);
         optionalOptions.add(RocketMQSourceOptions.POLL_TIMEOUT_MILLIS);
         optionalOptions.add(RocketMQSourceOptions.OPTIONAL_ENCODING);
         optionalOptions.add(RocketMQSourceOptions.OPTIONAL_FIELD_DELIMITER);
@@ -83,7 +83,7 @@ public class RocketMQDynamicTableSourceFactory implements DynamicTableSourceFact
         optionalOptions.add(RocketMQSourceOptions.OPTIONAL_ACCESS_KEY);
         optionalOptions.add(RocketMQSourceOptions.OPTIONAL_SECRET_KEY);
         optionalOptions.add(RocketMQSourceOptions.OPTIONAL_SCAN_STARTUP_MODE);
-        //optionalOptions.add(RocketMQSourceOptions.OPTIONAL_CONSUMER_POLL_MS);
+        // optionalOptions.add(RocketMQSourceOptions.OPTIONAL_CONSUMER_POLL_MS);
         return optionalOptions;
     }
 
@@ -162,7 +162,8 @@ public class RocketMQDynamicTableSourceFactory implements DynamicTableSourceFact
                         RocketMQConfig.CONSUMER_OFFSET_LATEST);
         long consumerOffsetTimestamp =
                 configuration.getLong(
-                        RocketMQSourceOptions.OPTIONAL_OFFSET_FROM_TIMESTAMP, System.currentTimeMillis());
+                        RocketMQSourceOptions.OPTIONAL_OFFSET_FROM_TIMESTAMP,
+                        System.currentTimeMillis());
         return new RocketMQScanTableSource(
                 configuration.getLong(RocketMQSourceOptions.CONSUMER_TIMEOUT_MILLIS_WHEN_SUSPEND),
                 descriptorProperties,

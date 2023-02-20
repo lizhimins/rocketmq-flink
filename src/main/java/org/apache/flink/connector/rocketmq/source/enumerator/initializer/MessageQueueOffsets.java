@@ -18,12 +18,12 @@
 
 package org.apache.flink.connector.rocketmq.source.enumerator.initializer;
 
-import org.apache.flink.connector.rocketmq.source.RocketMQSource;
 import org.apache.rocketmq.common.consumer.ConsumeFromWhere;
 import org.apache.rocketmq.common.message.MessageQueue;
 
 import org.apache.flink.annotation.PublicEvolving;
 import org.apache.flink.connector.rocketmq.legacy.common.config.OffsetResetStrategy;
+import org.apache.flink.connector.rocketmq.source.RocketMQSource;
 import org.apache.flink.connector.rocketmq.source.split.RocketMQPartitionSplit;
 
 import java.io.Serializable;
@@ -48,14 +48,14 @@ public interface MessageQueueOffsets extends Serializable {
     OffsetResetStrategy getAutoOffsetResetStrategy();
 
     /**
-     * An interface that provides necessary information to the {@link MessageQueueOffsets} to get the
-     * initial offsets of the RocketMQ message queues.
+     * An interface that provides necessary information to the {@link MessageQueueOffsets} to get
+     * the initial offsets of the RocketMQ message queues.
      */
     interface PartitionOffsetsRetriever {
 
         /**
-         * The group id should be the set for {@link RocketMQSource } before invoking
-         * this method. Otherwise, an {@code IllegalStateException} will be thrown.
+         * The group id should be the set for {@link RocketMQSource } before invoking this method.
+         * Otherwise, an {@code IllegalStateException} will be thrown.
          */
         Map<MessageQueue, Long> committedOffsets(Collection<MessageQueue> partitions);
 
@@ -79,13 +79,14 @@ public interface MessageQueueOffsets extends Serializable {
     }
 
     /**
-     * Get an {@link MessageQueueOffsets} which initializes the offsets to the committed offsets. Use
-     * the given {@link OffsetResetStrategy} to initialize the offsets if the committed offsets does
-     * not exist.
+     * Get an {@link MessageQueueOffsets} which initializes the offsets to the committed offsets.
+     * Use the given {@link OffsetResetStrategy} to initialize the offsets if the committed offsets
+     * does not exist.
      *
      * @param offsetResetStrategy the offset reset strategy to use when the committed offsets do not
      *     exist.
-     * @return an {@link MessageQueueOffsets} which initializes the offsets to the committed offsets.
+     * @return an {@link MessageQueueOffsets} which initializes the offsets to the committed
+     *     offsets.
      */
     static MessageQueueOffsets committedOffsets(OffsetResetStrategy offsetResetStrategy) {
         return new ReaderHandledMessageQueueMessageQueueOffsets(
@@ -121,8 +122,8 @@ public interface MessageQueueOffsets extends Serializable {
     // }
 
     /**
-     * Get an {@link MessageQueueOffsets} which initializes the offsets to the latest offsets of each
-     * partition.
+     * Get an {@link MessageQueueOffsets} which initializes the offsets to the latest offsets of
+     * each partition.
      *
      * @return an {@link MessageQueueOffsets} which initializes the offsets to the latest offsets.
      */
@@ -139,7 +140,8 @@ public interface MessageQueueOffsets extends Serializable {
     // offsets.
     // */
     // static MessageQueueOffsets offsets(Map<TopicPartition, Long> offsets) {
-    //    return new SpecifiedMessageQueueMessageQueueOffsets(offsets, OffsetResetStrategy.EARLIEST);
+    //    return new SpecifiedMessageQueueMessageQueueOffsets(offsets,
+    // OffsetResetStrategy.EARLIEST);
     // }
     //
     /// **

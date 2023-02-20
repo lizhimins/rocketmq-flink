@@ -26,11 +26,11 @@ import org.apache.flink.core.io.SimpleVersionedSerializer;
 import java.io.IOException;
 
 @PublicEvolving
-public class RocketMQSink<IN> implements
-        TwoPhaseCommittingSink<IN, RocketMQCommittable> {
+public class RocketMQSink<IN> implements TwoPhaseCommittingSink<IN, RocketMQCommittable> {
 
     @Override
-    public PrecommittingSinkWriter<IN, RocketMQCommittable> createWriter(InitContext context) throws IOException {
+    public PrecommittingSinkWriter<IN, RocketMQCommittable> createWriter(InitContext context)
+            throws IOException {
         return null;
     }
 

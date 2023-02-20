@@ -17,7 +17,6 @@
 
 package org.apache.flink.connector.rocketmq.source.config;
 
-
 import org.apache.flink.annotation.Internal;
 import org.apache.flink.annotation.PublicEvolving;
 import org.apache.flink.configuration.DescribedEnum;
@@ -25,11 +24,8 @@ import org.apache.flink.configuration.description.InlineElement;
 
 import static org.apache.flink.configuration.description.TextElement.text;
 
-/**
- * The enum class for defining the cursor verify behavior.
- */
+/** The enum class for defining the cursor verify behavior. */
 @PublicEvolving
-
 public enum OffsetVerification implements DescribedEnum {
 
     /** We would just fail the consuming. */

@@ -8,9 +8,8 @@ import org.apache.flink.connector.rocketmq.sink.writer.message.RocketMQSinkMessa
 import java.io.Serializable;
 
 /**
- * The serialization schema for how to serialize records into RocketMQ.
- * A serialization schema which defines how to convert a value of type {@code T} to {@link
- * RocketMQSinkMessage}.
+ * The serialization schema for how to serialize records into RocketMQ. A serialization schema which
+ * defines how to convert a value of type {@code T} to {@link RocketMQSinkMessage}.
  *
  * @param <T> the type of values being serialized
  */
@@ -24,19 +23,18 @@ public interface RocketMQSerializationSchema<T> extends Serializable {
      * <p>The provided {@link SerializationSchema.InitializationContext} can be used to access
      * additional features such as e.g. registering user metrics.
      *
-     * @param context     Contextual information that can be used during initialization.
+     * @param context Contextual information that can be used during initialization.
      * @param sinkContext runtime information i.e. partitions, subtaskId
      */
     default void open(
             SerializationSchema.InitializationContext context, RocketMQSinkContext sinkContext)
-            throws Exception {
-    }
+            throws Exception {}
 
     /**
      * Serializes given element and returns it as a {@link RocketMQSinkMessage}.
      *
-     * @param element   element to be serialized
-     * @param context   context to possibly determine target partition
+     * @param element element to be serialized
+     * @param context context to possibly determine target partition
      * @param timestamp timestamp
      * @return Kafka {@link RocketMQSinkMessage}
      */

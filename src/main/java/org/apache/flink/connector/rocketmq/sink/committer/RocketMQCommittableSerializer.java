@@ -25,10 +25,9 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 
-/**
- * A serializer used to serialize {@link RocketMQCommittable}.
- */
-public class RocketMQCommittableSerializer implements SimpleVersionedSerializer<RocketMQCommittable> {
+/** A serializer used to serialize {@link RocketMQCommittable}. */
+public class RocketMQCommittableSerializer
+        implements SimpleVersionedSerializer<RocketMQCommittable> {
 
     private static final int CURRENT_VERSION = 1;
 
@@ -40,10 +39,10 @@ public class RocketMQCommittableSerializer implements SimpleVersionedSerializer<
     @Override
     public byte[] serialize(RocketMQCommittable obj) throws IOException {
         try (final ByteArrayOutputStream stream = new ByteArrayOutputStream();
-             final DataOutputStream out = new DataOutputStream(stream)) {
-            //TxnID txnID = obj.getTxnID();
-            //out.writeLong(txnID.getMostSigBits());
-            //out.writeLong(txnID.getLeastSigBits());
+                final DataOutputStream out = new DataOutputStream(stream)) {
+            // TxnID txnID = obj.getTxnID();
+            // out.writeLong(txnID.getMostSigBits());
+            // out.writeLong(txnID.getLeastSigBits());
             out.writeUTF(obj.getTopic());
             out.flush();
             return stream.toByteArray();
@@ -53,9 +52,9 @@ public class RocketMQCommittableSerializer implements SimpleVersionedSerializer<
     @Override
     public RocketMQCommittable deserialize(int version, byte[] serialized) throws IOException {
         try (final ByteArrayInputStream bais = new ByteArrayInputStream(serialized);
-             final DataInputStream in = new DataInputStream(bais)) {
-            //long mostSigBits = in.readLong();
-            //long leastSigBits = in.readLong();
+                final DataInputStream in = new DataInputStream(bais)) {
+            // long mostSigBits = in.readLong();
+            // long leastSigBits = in.readLong();
             String topic = in.readUTF();
             return new RocketMQCommittable(topic);
         }

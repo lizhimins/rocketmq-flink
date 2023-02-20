@@ -23,7 +23,6 @@ import org.apache.rocketmq.common.message.MessageExt;
 import org.apache.flink.api.common.eventtime.Watermark;
 import org.apache.flink.api.connector.source.ReaderOutput;
 import org.apache.flink.api.connector.source.SourceOutput;
-import org.apache.flink.api.java.tuple.Tuple3;
 import org.apache.flink.connector.rocketmq.source.split.RocketMQPartitionSplit;
 import org.apache.flink.connector.rocketmq.source.split.RocketMQPartitionSplitState;
 import org.apache.flink.table.data.GenericRowData;
@@ -57,13 +56,15 @@ public class RocketMQRecordEmitterTest {
         int partition = 256;
         long startingOffset = 100;
         long stoppingTimestamp = System.currentTimeMillis();
-        Tuple3<RowData, Long, Long> record =
-                new Tuple3<>(rowData, 100L, System.currentTimeMillis());
+        // Tuple3<RowData, Long, Long> record =
+        //        new Tuple3<>(rowData, 100L, System.currentTimeMillis());
+
         RocketMQPartitionSplitState partitionSplitState =
                 new RocketMQPartitionSplitState(
                         new RocketMQPartitionSplit(
                                 topic, broker, partition, startingOffset, stoppingTimestamp));
-        recordEmitter.emitRecord(record, new TestingEmitterOutput<>(), partitionSplitState);
+        // recordEmitter.emitRecord(record, new TestingEmitterOutput<>(), partitionSplitState);
+        recordEmitter.emitRecord(null, new TestingEmitterOutput<>(), partitionSplitState);
         assertEquals(
                 new RocketMQPartitionSplit(
                         topic, broker, partition, startingOffset + 1, stoppingTimestamp),

@@ -17,6 +17,9 @@
 
 package org.apache.flink.connector.rocketmq.source;
 
+import org.apache.rocketmq.client.consumer.DefaultLitePullConsumer;
+import org.apache.rocketmq.common.protocol.heartbeat.MessageModel;
+
 import org.apache.flink.annotation.PublicEvolving;
 import org.apache.flink.api.common.serialization.DeserializationSchema;
 import org.apache.flink.api.connector.source.Boundedness;
@@ -25,8 +28,7 @@ import org.apache.flink.configuration.Configuration;
 import org.apache.flink.connector.rocketmq.common.config.RocketMQConfigBuilder;
 import org.apache.flink.connector.rocketmq.source.enumerator.initializer.MessageQueueOffsets;
 import org.apache.flink.connector.rocketmq.source.reader.deserializer.RocketMQDeserializationSchema;
-import org.apache.rocketmq.client.consumer.DefaultLitePullConsumer;
-import org.apache.rocketmq.common.protocol.heartbeat.MessageModel;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -55,8 +57,7 @@ public class RocketMQSourceBuilder<OUT> {
     // The configurations.
     protected RocketMQConfigBuilder configBuilder;
 
-    RocketMQSourceBuilder() {
-    }
+    RocketMQSourceBuilder() {}
 
     /**
      * Configure the access point with which the SDK should communicate.
@@ -101,12 +102,14 @@ public class RocketMQSourceBuilder<OUT> {
         return this.setTopics(Arrays.asList(topics));
     }
 
-    public RocketMQSourceBuilder<OUT> setStartingOffsets(MessageQueueOffsets startingMessageQueueOffsets) {
+    public RocketMQSourceBuilder<OUT> setStartingOffsets(
+            MessageQueueOffsets startingMessageQueueOffsets) {
         this.startingMessageQueueOffsets = startingMessageQueueOffsets;
         return this;
     }
 
-    public RocketMQSourceBuilder<OUT> setUnbounded(MessageQueueOffsets stoppingMessageQueueOffsets) {
+    public RocketMQSourceBuilder<OUT> setUnbounded(
+            MessageQueueOffsets stoppingMessageQueueOffsets) {
         this.boundedness = Boundedness.CONTINUOUS_UNBOUNDED;
         this.stoppingMessageQueueOffsets = stoppingMessageQueueOffsets;
         return this;
@@ -119,15 +122,15 @@ public class RocketMQSourceBuilder<OUT> {
     }
 
     /**
-     * now, rocketmq only support broadcast mode when broker version is v4
-     * {@link MessageModel} is the consuming behavior for rocketmq, we would generate different
-     * split by the given subscription type. Please take some time to consider which subscription
-     * type matches your application best. Default is {@link SubscriptionType#Shared}.
+     * now, rocketmq only support broadcast mode when broker version is v4 {@link MessageModel} is
+     * the consuming behavior for rocketmq, we would generate different split by the given
+     * subscription type. Please take some time to consider which subscription type matches your
+     * application best. Default is {@link SubscriptionType#Shared}.
      *
      * @param messageModel The type of subscription.
      * @return this PulsarSourceBuilder.
      * @see <a href="https://pulsar.apache.org/docs/en/concepts-messaging/#subscriptions">RocketMQ
-     * Broadcast Subscriptions</a>
+     *     Broadcast Subscriptions</a>
      */
     public RocketMQSourceBuilder<OUT> setMessageModel(MessageModel messageModel) {
         consumer.setMessageModel(messageModel);
@@ -142,10 +145,10 @@ public class RocketMQSourceBuilder<OUT> {
 
     public RocketMQSourceBuilder<OUT> setBodyOnlyDeserializer(
             DeserializationSchema<OUT> deserializationSchema) {
-        this.deserializationSchema = RocketMQDeserializationSchema.flinkBodyOnlySchema(deserializationSchema);
+        this.deserializationSchema =
+                RocketMQDeserializationSchema.flinkBodyOnlySchema(deserializationSchema);
         return this;
     }
-
 
     /**
      * Set an arbitrary property for the PulsarSource and Pulsar Consumer. The valid keys can be
@@ -196,7 +199,7 @@ public class RocketMQSourceBuilder<OUT> {
     public RocketMQSource<OUT> build() {
         // sanityCheck();
         // parseAndSetRequiredProperties();
-        //return new RocketMQSource<>(
+        // return new RocketMQSource<>(
         //        startingMessageQueueOffsets,
         //        stoppingMessageQueueOffsets,
         //        boundedness,
@@ -207,9 +210,7 @@ public class RocketMQSourceBuilder<OUT> {
 
     // ------------- private helpers  --------------
 
-    /**
-     * Helper method for java compiler recognize the generic type.
-     */
+    /** Helper method for java compiler recognize the generic type. */
     @SuppressWarnings("unchecked")
     private <T extends OUT> RocketMQSourceBuilder<T> specialized() {
         return (RocketMQSourceBuilder<T>) this;
@@ -218,7 +219,8 @@ public class RocketMQSourceBuilder<OUT> {
     private void ensureConsumerIsNull(String attemptingSubscribeMode) {
         if (consumer != null) {
             throw new IllegalStateException(
-                    String.format("Cannot use %s for consumption because a %s is already set for consumption.",
+                    String.format(
+                            "Cannot use %s for consumption because a %s is already set for consumption.",
                             attemptingSubscribeMode, consumer.getClass().getSimpleName()));
         }
     }

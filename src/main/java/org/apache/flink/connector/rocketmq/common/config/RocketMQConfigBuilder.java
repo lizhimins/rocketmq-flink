@@ -41,9 +41,7 @@ public class RocketMQConfigBuilder {
 
     private final Configuration configuration = new Configuration();
 
-    /**
-     * Validate if the config has a existed option.
-     */
+    /** Validate if the config has a existed option. */
     public <T> boolean contains(ConfigOption<T> option) {
         return configuration.contains(option);
     }
@@ -62,7 +60,7 @@ public class RocketMQConfigBuilder {
      * Add a config option with a not null value. The config key shouldn't be duplicated.
      *
      * @param option Config option instance, contains key & type definition.
-     * @param value  The config value which shouldn't be null.
+     * @param value The config value which shouldn't be null.
      */
     public <T> void set(ConfigOption<T> option, T value) {
         checkNotNull(option);
@@ -135,9 +133,7 @@ public class RocketMQConfigBuilder {
         configuration.set(option, value);
     }
 
-    /**
-     * Validate the current config instance and return a unmodifiable configuration.
-     */
+    /** Validate the current config instance and return a unmodifiable configuration. */
     public <T extends RocketMQConfiguration> T build(
             RocketMQConfigValidator validator, Function<Configuration, T> constructor) {
         validator.validate(configuration);

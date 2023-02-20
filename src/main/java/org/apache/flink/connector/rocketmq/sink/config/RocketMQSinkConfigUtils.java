@@ -19,15 +19,7 @@ package org.apache.flink.connector.rocketmq.sink.config;
 
 import org.apache.flink.annotation.Internal;
 
-import java.util.Map;
-import java.util.UUID;
-
-import static java.util.concurrent.TimeUnit.MICROSECONDS;
-import static java.util.concurrent.TimeUnit.MILLISECONDS;
-
-/**
- * Create the {@link Producer} to send message and a validator for building sink config.
- **/
+/** Create the {@link Producer} to send message and a validator for building sink config. */
 @Internal
 public class RocketMQSinkConfigUtils {
 
@@ -35,7 +27,7 @@ public class RocketMQSinkConfigUtils {
         // No need to create instance.
     }
 
-    //public static final PulsarConfigValidator SINK_CONFIG_VALIDATOR =
+    // public static final PulsarConfigValidator SINK_CONFIG_VALIDATOR =
     //        PulsarConfigValidator.builder()
     //                .requiredOption(PULSAR_SERVICE_URL)
     //                .requiredOption(PULSAR_ADMIN_URL)
@@ -46,8 +38,8 @@ public class RocketMQSinkConfigUtils {
     //                        PULSAR_MAX_PENDING_MESSAGES_ACROSS_PARTITIONS)
     //                .build();
     //
-    ///** Create a pulsar producer builder by using the given Configuration. */
-    //public static <T> ProducerBuilder<T> createProducerBuilder(
+    /// ** Create a pulsar producer builder by using the given Configuration. */
+    // public static <T> ProducerBuilder<T> createProducerBuilder(
     //        PulsarClient client, Schema<T> schema, SinkConfiguration configuration) {
     //    ProducerBuilder<T> builder = client.newProducer(schema);
     //
@@ -92,5 +84,5 @@ public class RocketMQSinkConfigUtils {
     //            .enableLazyStartPartitionedProducers(false);
     //
     //    return builder;
-    //}
+    // }
 }

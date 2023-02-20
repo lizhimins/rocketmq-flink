@@ -21,8 +21,8 @@ import org.apache.flink.annotation.Experimental;
 import org.apache.flink.annotation.PublicEvolving;
 
 /**
- * This context provides information on the pulsar record target location.
- * An implementation that would contain all the required context.
+ * This context provides information on the pulsar record target location. An implementation that
+ * would contain all the required context.
  */
 @PublicEvolving
 public interface RocketMQSinkContext {

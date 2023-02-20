@@ -32,8 +32,8 @@ import java.util.Set;
 import static org.apache.flink.util.Preconditions.checkArgument;
 
 /**
- * A config validator for building {@link RocketMQConfiguration} in {@link RocketMQConfigBuilder}. It's
- * used for source & sink builder.
+ * A config validator for building {@link RocketMQConfiguration} in {@link RocketMQConfigBuilder}.
+ * It's used for source & sink builder.
  *
  * <p>We would validate:
  *

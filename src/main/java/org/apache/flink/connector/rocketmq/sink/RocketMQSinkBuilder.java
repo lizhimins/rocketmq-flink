@@ -25,6 +25,7 @@ import org.apache.flink.connector.base.DeliveryGuarantee;
 import org.apache.flink.connector.rocketmq.common.config.RocketMQConfigBuilder;
 import org.apache.flink.connector.rocketmq.sink.writer.serializer.RocketMQSerializationSchema;
 import org.apache.flink.connector.rocketmq.source.RocketMQSource;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -52,40 +53,37 @@ import static org.apache.flink.util.Preconditions.checkNotNull;
  * DeliveryGuarantee#EXACTLY_ONCE} one must set the transactionalIdPrefix {@link
  * #setTransactionalIdPrefix(String)}.
  *
- * @param <IN> type of the records written to Kafka
-*             The builder class for {@link PulsarSink} to make it easier for the users to construct a {@link
-*             PulsarSink}.
-*
-*             <p>The following example shows the minimum setup to create a PulsarSink that reads the String
-*             values from a Pulsar topic.
-*
-*             <pre>{@code
-*             PulsarSink<String> sink = PulsarSink.builder()
-*                 .setServiceUrl(operator().serviceUrl())
-*                 .setAdminUrl(operator().adminUrl())
-*                 .setTopics(topic)
-*                 .setSerializationSchema(PulsarSerializationSchema.pulsarSchema(Schema.STRING))
-*                 .build();
-*             }</pre>
-*
-*             <p>The service url, admin url, and the record serializer are required fields that must be set. If
-*             you don't set the topics, make sure you have provided a custom {@link TopicRouter}. Otherwise,
-*             you must provide the topics to produce.
-*
-*             <p>To specify the delivery guarantees of PulsarSink, one can call {@link
-*             #setDeliveryGuarantee(DeliveryGuarantee)}. The default value of the delivery guarantee is {@link
-*             DeliveryGuarantee#NONE}, and it wouldn't promise the consistence when write the message into
-*             Pulsar.
-*
-*             <pre>{@code
-*             PulsarSink<String> sink = PulsarSink.builder()
-*                 .setServiceUrl(operator().serviceUrl())
-*                 .setAdminUrl(operator().adminUrl())
-*                 .setTopics(topic)
-*                 .setSerializationSchema(PulsarSerializationSchema.pulsarSchema(Schema.STRING))
-*                 .setDeliveryGuarantee(deliveryGuarantee)
-*                 .build();
-*             }</pre>
+ * @param <IN> type of the records written to Kafka The builder class for {@link PulsarSink} to make
+ *     it easier for the users to construct a {@link PulsarSink}.
+ *     <p>The following example shows the minimum setup to create a PulsarSink that reads the String
+ *     values from a Pulsar topic.
+ *     <pre>{@code
+ * PulsarSink<String> sink = PulsarSink.builder()
+ *     .setServiceUrl(operator().serviceUrl())
+ *     .setAdminUrl(operator().adminUrl())
+ *     .setTopics(topic)
+ *     .setSerializationSchema(PulsarSerializationSchema.pulsarSchema(Schema.STRING))
+ *     .build();
+ *
+ * }</pre>
+ *     <p>The service url, admin url, and the record serializer are required fields that must be
+ *     set. If you don't set the topics, make sure you have provided a custom {@link TopicRouter}.
+ *     Otherwise, you must provide the topics to produce.
+ *     <p>To specify the delivery guarantees of PulsarSink, one can call {@link
+ *     #setDeliveryGuarantee(DeliveryGuarantee)}. The default value of the delivery guarantee is
+ *     {@link DeliveryGuarantee#NONE}, and it wouldn't promise the consistence when write the
+ *     message into Pulsar.
+ *     <pre>{@code
+ * PulsarSink<String> sink = PulsarSink.builder()
+ *     .setServiceUrl(operator().serviceUrl())
+ *     .setAdminUrl(operator().adminUrl())
+ *     .setTopics(topic)
+ *     .setSerializationSchema(PulsarSerializationSchema.pulsarSchema(Schema.STRING))
+ *     .setDeliveryGuarantee(deliveryGuarantee)
+ *     .build();
+ *
+ * }</pre>
+ *
  * @param <IN> The input type of the sink.
  * @see KafkaSink for a more detailed explanation of the different guarantees.
  * @see RocketMQSink for a more detailed explanation of the different guarantees.
@@ -102,7 +100,7 @@ public class RocketMQSinkBuilder<IN> {
     private RocketMQSerializationSchema<IN> serializer;
 
     RocketMQSinkBuilder() {
-        //this.configBuilder = configBuilder;
+        // this.configBuilder = configBuilder;
     }
 
     /**
@@ -112,7 +110,7 @@ public class RocketMQSinkBuilder<IN> {
      * @return the client configuration builder instance.
      */
     public RocketMQSinkBuilder<IN> setEndpoints(String endpoints) {
-        //consumer.setNamesrvAddr(endpoints);
+        // consumer.setNamesrvAddr(endpoints);
         return this;
     }
 
@@ -164,8 +162,7 @@ public class RocketMQSinkBuilder<IN> {
     public RocketMQSinkBuilder<IN> setRecordSerializer(
             RocketMQSerializationSchema<IN> recordSerializer) {
         this.serializer = checkNotNull(recordSerializer, "serializer is null");
-        ClosureCleaner.clean(
-                this.serializer, ExecutionConfig.ClosureCleanerLevel.RECURSIVE, true);
+        ClosureCleaner.clean(this.serializer, ExecutionConfig.ClosureCleanerLevel.RECURSIVE, true);
         return this;
     }
 
@@ -177,7 +174,7 @@ public class RocketMQSinkBuilder<IN> {
     public RocketMQSink<IN> build() {
         // sanityCheck();
         // parseAndSetRequiredProperties();
-        //return new RocketMQSource<>(
+        // return new RocketMQSource<>(
         //        startingOffsetsInitializer,
         //        stoppingOffsetsInitializer,
         //        boundedness,
@@ -185,25 +182,4 @@ public class RocketMQSinkBuilder<IN> {
         //        props);
         return null;
     }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 }

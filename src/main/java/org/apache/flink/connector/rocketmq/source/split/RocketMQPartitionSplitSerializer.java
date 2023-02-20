@@ -26,12 +26,10 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 
-/**
- * The {@link SimpleVersionedSerializer serializer} for {@link RocketMQPartitionSplit}.
- */
+/** The {@link SimpleVersionedSerializer serializer} for {@link RocketMQPartitionSplit}. */
 public class RocketMQPartitionSplitSerializer
         implements SimpleVersionedSerializer<RocketMQPartitionSplit> {
-    
+
     private static final int SNAPSHOT_VERSION = 0;
     private static final int CURRENT_VERSION = 1;
 
@@ -43,7 +41,7 @@ public class RocketMQPartitionSplitSerializer
     @Override
     public byte[] serialize(RocketMQPartitionSplit split) throws IOException {
         try (ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-             DataOutputStream out = new DataOutputStream(byteArrayOutputStream)) {
+                DataOutputStream out = new DataOutputStream(byteArrayOutputStream)) {
             out.writeUTF(split.getTopicName());
             out.writeUTF(split.getBrokerName());
             out.writeInt(split.getPartitionId());
@@ -57,7 +55,7 @@ public class RocketMQPartitionSplitSerializer
     @Override
     public RocketMQPartitionSplit deserialize(int version, byte[] serialized) throws IOException {
         try (ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(serialized);
-             DataInputStream in = new DataInputStream(byteArrayInputStream)) {
+                DataInputStream in = new DataInputStream(byteArrayInputStream)) {
             String topic = in.readUTF();
             String broker = in.readUTF();
             int partition = in.readInt();

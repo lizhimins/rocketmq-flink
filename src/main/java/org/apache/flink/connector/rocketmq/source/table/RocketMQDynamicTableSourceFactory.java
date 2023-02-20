@@ -59,7 +59,7 @@ public class RocketMQDynamicTableSourceFactory implements DynamicTableSourceFact
         Set<ConfigOption<?>> requiredOptions = new HashSet<>();
         requiredOptions.add(RocketMQSourceOptions.TOPIC);
         requiredOptions.add(RocketMQSourceOptions.CONSUMER_GROUP);
-        requiredOptions.add(RocketMQSourceOptions.NAME_SERVER_ADDRESS);
+        //requiredOptions.add(RocketMQSourceOptions.PERSIST_OFFSET_INTERVAL);
         return requiredOptions;
     }
 
@@ -71,10 +71,10 @@ public class RocketMQDynamicTableSourceFactory implements DynamicTableSourceFact
         optionalOptions.add(RocketMQSourceOptions.OPTIONAL_START_MESSAGE_OFFSET);
         optionalOptions.add(RocketMQSourceOptions.OPTIONAL_START_TIME_MILLS);
         optionalOptions.add(RocketMQSourceOptions.OPTIONAL_START_TIME);
-        optionalOptions.add(RocketMQSourceOptions.OPTIONAL_END_TIME);
+        optionalOptions.add(RocketMQSourceOptions.OPTIONAL_STOP_TIME);
         optionalOptions.add(RocketMQSourceOptions.OPTIONAL_TIME_ZONE);
-        optionalOptions.add(RocketMQSourceOptions.OPTIONAL_PARTITION_DISCOVERY_INTERVAL_MS);
-        optionalOptions.add(RocketMQSourceOptions.OPTIONAL_USE_NEW_API);
+        //optionalOptions.add(RocketMQSourceOptions.OPTIONAL_PARTITION_DISCOVERY_INTERVAL_MS);
+        optionalOptions.add(RocketMQSourceOptions.POLL_TIMEOUT_MILLIS);
         optionalOptions.add(RocketMQSourceOptions.OPTIONAL_ENCODING);
         optionalOptions.add(RocketMQSourceOptions.OPTIONAL_FIELD_DELIMITER);
         optionalOptions.add(RocketMQSourceOptions.OPTIONAL_LINE_DELIMITER);
@@ -83,7 +83,7 @@ public class RocketMQDynamicTableSourceFactory implements DynamicTableSourceFact
         optionalOptions.add(RocketMQSourceOptions.OPTIONAL_ACCESS_KEY);
         optionalOptions.add(RocketMQSourceOptions.OPTIONAL_SECRET_KEY);
         optionalOptions.add(RocketMQSourceOptions.OPTIONAL_SCAN_STARTUP_MODE);
-        optionalOptions.add(RocketMQSourceOptions.OPTIONAL_CONSUMER_POLL_MS);
+        //optionalOptions.add(RocketMQSourceOptions.OPTIONAL_CONSUMER_POLL_MS);
         return optionalOptions;
     }
 
@@ -95,7 +95,7 @@ public class RocketMQDynamicTableSourceFactory implements DynamicTableSourceFact
         Configuration configuration = Configuration.fromMap(rawProperties);
         String topic = configuration.getString(RocketMQSourceOptions.TOPIC);
         String consumerGroup = configuration.getString(RocketMQSourceOptions.CONSUMER_GROUP);
-        String nameServerAddress = configuration.getString(RocketMQSourceOptions.NAME_SERVER_ADDRESS);
+        String nameServerAddress = configuration.getString(RocketMQSourceOptions.ENDPOINTS);
         String tag = configuration.getString(RocketMQSourceOptions.OPTIONAL_TAG);
         String sql = configuration.getString(RocketMQSourceOptions.OPTIONAL_SQL);
         if (configuration.contains(RocketMQSourceOptions.OPTIONAL_SCAN_STARTUP_MODE)
@@ -133,7 +133,7 @@ public class RocketMQDynamicTableSourceFactory implements DynamicTableSourceFact
             }
         }
         long stopInMs = Long.MAX_VALUE;
-        String endDateTime = configuration.getString(RocketMQSourceOptions.OPTIONAL_END_TIME);
+        String endDateTime = configuration.getString(RocketMQSourceOptions.OPTIONAL_STOP_TIME);
         if (!StringUtils.isNullOrWhitespaceOnly(endDateTime)) {
             try {
                 stopInMs = parseDateString(endDateTime, timeZone);
@@ -149,7 +149,7 @@ public class RocketMQDynamicTableSourceFactory implements DynamicTableSourceFact
                     stopInMs >= startTime, "Start time should be less than stop time.");
         }
         long partitionDiscoveryIntervalMs =
-                configuration.getLong(RocketMQSourceOptions.OPTIONAL_PARTITION_DISCOVERY_INTERVAL_MS);
+                configuration.getLong(RocketMQSourceOptions.PARTITION_DISCOVERY_INTERVAL_MS);
         boolean useNewApi = configuration.getBoolean(RocketMQSourceOptions.OPTIONAL_USE_NEW_API);
         DescriptorProperties descriptorProperties = new DescriptorProperties();
         descriptorProperties.putProperties(rawProperties);
@@ -164,7 +164,7 @@ public class RocketMQDynamicTableSourceFactory implements DynamicTableSourceFact
                 configuration.getLong(
                         RocketMQSourceOptions.OPTIONAL_OFFSET_FROM_TIMESTAMP, System.currentTimeMillis());
         return new RocketMQScanTableSource(
-                configuration.getLong(RocketMQSourceOptions.OPTIONAL_CONSUMER_POLL_MS),
+                configuration.getLong(RocketMQSourceOptions.CONSUMER_TIMEOUT_MILLIS_WHEN_SUSPEND),
                 descriptorProperties,
                 physicalSchema,
                 topic,

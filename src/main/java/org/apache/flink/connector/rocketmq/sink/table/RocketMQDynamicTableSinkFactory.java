@@ -31,21 +31,21 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import static org.apache.flink.connector.rocketmq.source.RocketMQSourceOptions.NAME_SERVER_ADDRESS;
-import static org.apache.flink.connector.rocketmq.source.RocketMQSourceOptions.OPTIONAL_ACCESS_KEY;
-import static org.apache.flink.connector.rocketmq.source.RocketMQSourceOptions.OPTIONAL_ENCODING;
-import static org.apache.flink.connector.rocketmq.source.RocketMQSourceOptions.OPTIONAL_FIELD_DELIMITER;
-import static org.apache.flink.connector.rocketmq.source.RocketMQSourceOptions.OPTIONAL_SECRET_KEY;
-import static org.apache.flink.connector.rocketmq.source.RocketMQSourceOptions.OPTIONAL_TAG;
-import static org.apache.flink.connector.rocketmq.source.RocketMQSourceOptions.OPTIONAL_WRITE_DYNAMIC_TAG_COLUMN;
-import static org.apache.flink.connector.rocketmq.source.RocketMQSourceOptions.OPTIONAL_WRITE_DYNAMIC_TAG_COLUMN_WRITE_INCLUDED;
-import static org.apache.flink.connector.rocketmq.source.RocketMQSourceOptions.OPTIONAL_WRITE_IS_DYNAMIC_TAG;
-import static org.apache.flink.connector.rocketmq.source.RocketMQSourceOptions.OPTIONAL_WRITE_KEYS_TO_BODY;
-import static org.apache.flink.connector.rocketmq.source.RocketMQSourceOptions.OPTIONAL_WRITE_KEY_COLUMNS;
-import static org.apache.flink.connector.rocketmq.source.RocketMQSourceOptions.OPTIONAL_WRITE_RETRY_TIMES;
-import static org.apache.flink.connector.rocketmq.source.RocketMQSourceOptions.OPTIONAL_WRITE_SLEEP_TIME_MS;
-import static org.apache.flink.connector.rocketmq.source.RocketMQSourceOptions.PRODUCER_GROUP;
-import static org.apache.flink.connector.rocketmq.source.RocketMQSourceOptions.TOPIC;
+import static org.apache.flink.connector.rocketmq.common.config.RocketMQOptions.ENDPOINTS;
+import static org.apache.flink.connector.rocketmq.sink.RocketMQSinkOptions.OPTIONAL_ACCESS_KEY;
+import static org.apache.flink.connector.rocketmq.sink.RocketMQSinkOptions.OPTIONAL_ENCODING;
+import static org.apache.flink.connector.rocketmq.sink.RocketMQSinkOptions.OPTIONAL_FIELD_DELIMITER;
+import static org.apache.flink.connector.rocketmq.sink.RocketMQSinkOptions.OPTIONAL_SECRET_KEY;
+import static org.apache.flink.connector.rocketmq.sink.RocketMQSinkOptions.OPTIONAL_WRITE_DYNAMIC_TAG_COLUMN;
+import static org.apache.flink.connector.rocketmq.sink.RocketMQSinkOptions.OPTIONAL_WRITE_DYNAMIC_TAG_COLUMN_WRITE_INCLUDED;
+import static org.apache.flink.connector.rocketmq.sink.RocketMQSinkOptions.OPTIONAL_WRITE_IS_DYNAMIC_TAG;
+import static org.apache.flink.connector.rocketmq.sink.RocketMQSinkOptions.OPTIONAL_WRITE_KEYS_TO_BODY;
+import static org.apache.flink.connector.rocketmq.sink.RocketMQSinkOptions.OPTIONAL_WRITE_KEY_COLUMNS;
+import static org.apache.flink.connector.rocketmq.sink.RocketMQSinkOptions.OPTIONAL_WRITE_RETRY_TIMES;
+import static org.apache.flink.connector.rocketmq.sink.RocketMQSinkOptions.OPTIONAL_WRITE_SLEEP_TIME_MS;
+import static org.apache.flink.connector.rocketmq.sink.RocketMQSinkOptions.PRODUCER_GROUP;
+import static org.apache.flink.connector.rocketmq.sink.RocketMQSinkOptions.TAG;
+import static org.apache.flink.connector.rocketmq.sink.RocketMQSinkOptions.TOPIC;
 import static org.apache.flink.table.factories.FactoryUtil.createTableFactoryHelper;
 
 /**
@@ -64,21 +64,21 @@ public class RocketMQDynamicTableSinkFactory implements DynamicTableSinkFactory 
         Set<ConfigOption<?>> requiredOptions = new HashSet<>();
         requiredOptions.add(TOPIC);
         requiredOptions.add(PRODUCER_GROUP);
-        requiredOptions.add(NAME_SERVER_ADDRESS);
+        //requiredOptions.add(PERSIST_OFFSET_INTERVAL);
         return requiredOptions;
     }
 
     @Override
     public Set<ConfigOption<?>> optionalOptions() {
         Set<ConfigOption<?>> optionalOptions = new HashSet<>();
-        optionalOptions.add(OPTIONAL_TAG);
-        optionalOptions.add(OPTIONAL_WRITE_RETRY_TIMES);
-        optionalOptions.add(OPTIONAL_WRITE_SLEEP_TIME_MS);
-        optionalOptions.add(OPTIONAL_WRITE_IS_DYNAMIC_TAG);
-        optionalOptions.add(OPTIONAL_WRITE_DYNAMIC_TAG_COLUMN);
-        optionalOptions.add(OPTIONAL_WRITE_DYNAMIC_TAG_COLUMN_WRITE_INCLUDED);
-        optionalOptions.add(OPTIONAL_WRITE_KEYS_TO_BODY);
-        optionalOptions.add(OPTIONAL_WRITE_KEY_COLUMNS);
+        optionalOptions.add(TAG);
+        //optionalOptions.add(OPTIONAL_WRITE_RETRY_TIMES);
+        //optionalOptions.add(OPTIONAL_WRITE_SLEEP_TIME_MS);
+        //optionalOptions.add(OPTIONAL_WRITE_IS_DYNAMIC_TAG);
+        //optionalOptions.add(OPTIONAL_WRITE_DYNAMIC_TAG_COLUMN);
+        //optionalOptions.add(OPTIONAL_WRITE_DYNAMIC_TAG_COLUMN_WRITE_INCLUDED);
+        //optionalOptions.add(OPTIONAL_WRITE_KEYS_TO_BODY);
+        //optionalOptions.add(OPTIONAL_WRITE_KEY_COLUMNS);
         optionalOptions.add(OPTIONAL_ENCODING);
         optionalOptions.add(OPTIONAL_FIELD_DELIMITER);
         optionalOptions.add(OPTIONAL_ACCESS_KEY);
@@ -94,8 +94,8 @@ public class RocketMQDynamicTableSinkFactory implements DynamicTableSinkFactory 
         Configuration properties = Configuration.fromMap(rawProperties);
         String topicName = properties.getString(TOPIC);
         String producerGroup = properties.getString(PRODUCER_GROUP);
-        String nameServerAddress = properties.getString(NAME_SERVER_ADDRESS);
-        String tag = properties.getString(OPTIONAL_TAG);
+        String nameServerAddress = properties.getString(ENDPOINTS);
+        String tag = properties.getString(TAG);
         String accessKey = properties.getString(OPTIONAL_ACCESS_KEY);
         String secretKey = properties.getString(OPTIONAL_SECRET_KEY);
         String dynamicColumn = properties.getString(OPTIONAL_WRITE_DYNAMIC_TAG_COLUMN);

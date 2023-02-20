@@ -167,8 +167,8 @@ public class RocketMQSourceEnumerator
                                 s ->
                                         discoveredPartitions.add(
                                                 new Tuple3<>(
-                                                        s.getTopic(),
-                                                        s.getBroker(),
+                                                        s.getTopicName(),
+                                                        s.getBrokerName(),
                                                         s.getPartition()))));
         this.pendingPartitionSplitAssignment = new HashMap<>();
         this.consumerOffsetMode = consumerOffsetMode;
@@ -280,7 +280,7 @@ public class RocketMQSourceEnumerator
         for (RocketMQPartitionSplit split : newPartitionSplits) {
             int ownerReader =
                     getSplitOwner(
-                            split.getTopic(), split.getBroker(), split.getPartition(), numReaders);
+                            split.getTopicName(), split.getBrokerName(), split.getPartition(), numReaders);
             pendingPartitionSplitAssignment
                     .computeIfAbsent(ownerReader, r -> new HashSet<>())
                     .add(split);

@@ -41,8 +41,8 @@ public class RocketMQPartitionSplitSerializer
     public byte[] serialize(RocketMQPartitionSplit split) throws IOException {
         try (ByteArrayOutputStream baos = new ByteArrayOutputStream();
                 DataOutputStream out = new DataOutputStream(baos)) {
-            out.writeUTF(split.getTopic());
-            out.writeUTF(split.getBroker());
+            out.writeUTF(split.getTopicName());
+            out.writeUTF(split.getBrokerName());
             out.writeInt(split.getPartition());
             out.writeLong(split.getStartingOffset());
             out.writeLong(split.getStoppingTimestamp());

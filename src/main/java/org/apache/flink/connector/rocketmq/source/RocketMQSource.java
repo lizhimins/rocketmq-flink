@@ -31,6 +31,7 @@ import org.apache.flink.configuration.Configuration;
 import org.apache.flink.connector.base.source.reader.RecordsWithSplitIds;
 import org.apache.flink.connector.base.source.reader.splitreader.SplitReader;
 import org.apache.flink.connector.base.source.reader.synchronization.FutureCompletingBlockingQueue;
+import org.apache.flink.connector.rocketmq.source.config.SourceConfiguration;
 import org.apache.flink.connector.rocketmq.source.enumerator.RocketMQSourceEnumState;
 import org.apache.flink.connector.rocketmq.source.enumerator.RocketMQSourceEnumStateSerializer;
 import org.apache.flink.connector.rocketmq.source.enumerator.initializer.MessageQueueOffsets;
@@ -57,30 +58,35 @@ public class RocketMQSource<OUT>
     private static final long serialVersionUID = -1L;
     private static final Logger log = LoggerFactory.getLogger(RocketMQSource.class);
 
+    // Users can choose only one of the following ways to specify the topics to consume from.
+    private final DefaultLitePullConsumer consumer;
+
     // Users can specify the starting / stopping offset initializer.
     private final MessageQueueOffsets startingMessageQueueOffsets;
     private final MessageQueueOffsets stoppingMessageQueueOffsets;
 
-    protected DefaultLitePullConsumer consumer;
-
     // The configurations.
-    protected Properties props;
+    private final SourceConfiguration sourceConfiguration;
 
     // Boundedness
     private final Boundedness boundedness;
+
+    // RocketMQ DeserializationSchema
     private final RocketMQDeserializationSchema<OUT> deserializationSchema;
 
     public RocketMQSource(
-            @Nullable MessageQueueOffsets startingMessageQueueOffsets,
-            @Nullable MessageQueueOffsets stoppingMessageQueueOffsets,
+            DefaultLitePullConsumer consumer,
+            MessageQueueOffsets startingMessageQueueOffsets,
+            MessageQueueOffsets stoppingMessageQueueOffsets,
             Boundedness boundedness,
             RocketMQDeserializationSchema<OUT> deserializationSchema,
-            Properties props) {
+            SourceConfiguration sourceConfiguration) {
+        this.consumer = consumer;
         this.startingMessageQueueOffsets = startingMessageQueueOffsets;
         this.stoppingMessageQueueOffsets = stoppingMessageQueueOffsets;
         this.boundedness = boundedness;
         this.deserializationSchema = deserializationSchema;
-        this.props = props;
+        this.sourceConfiguration = sourceConfiguration;
     }
 
     /**

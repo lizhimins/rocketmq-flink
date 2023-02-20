@@ -26,11 +26,14 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 
-/** The {@link SimpleVersionedSerializer serializer} for {@link RocketMQPartitionSplit}. */
+/**
+ * The {@link SimpleVersionedSerializer serializer} for {@link RocketMQPartitionSplit}.
+ */
 public class RocketMQPartitionSplitSerializer
         implements SimpleVersionedSerializer<RocketMQPartitionSplit> {
-
-    private static final int CURRENT_VERSION = 0;
+    
+    private static final int SNAPSHOT_VERSION = 0;
+    private static final int CURRENT_VERSION = 1;
 
     @Override
     public int getVersion() {
@@ -39,22 +42,22 @@ public class RocketMQPartitionSplitSerializer
 
     @Override
     public byte[] serialize(RocketMQPartitionSplit split) throws IOException {
-        try (ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                DataOutputStream out = new DataOutputStream(baos)) {
+        try (ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+             DataOutputStream out = new DataOutputStream(byteArrayOutputStream)) {
             out.writeUTF(split.getTopicName());
             out.writeUTF(split.getBrokerName());
-            out.writeInt(split.getPartition());
+            out.writeInt(split.getPartitionId());
             out.writeLong(split.getStartingOffset());
-            out.writeLong(split.getStoppingTimestamp());
+            out.writeLong(split.getStoppingOffset());
             out.flush();
-            return baos.toByteArray();
+            return byteArrayOutputStream.toByteArray();
         }
     }
 
     @Override
     public RocketMQPartitionSplit deserialize(int version, byte[] serialized) throws IOException {
-        try (ByteArrayInputStream bais = new ByteArrayInputStream(serialized);
-                DataInputStream in = new DataInputStream(bais)) {
+        try (ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(serialized);
+             DataInputStream in = new DataInputStream(byteArrayInputStream)) {
             String topic = in.readUTF();
             String broker = in.readUTF();
             int partition = in.readInt();

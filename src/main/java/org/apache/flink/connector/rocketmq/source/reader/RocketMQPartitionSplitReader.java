@@ -273,9 +273,9 @@ public class RocketMQPartitionSplitReader<T>
                                     new Tuple3<>(
                                             split.getTopicName(),
                                             split.getBrokerName(),
-                                            split.getPartition());
+                                            split.getPartitionId());
                             startingOffsets.put(topicPartition, split.getStartingOffset());
-                            stoppingTimestamps.put(topicPartition, split.getStoppingTimestamp());
+                            stoppingTimestamps.put(topicPartition, split.getStoppingOffset());
                         });
     }
 

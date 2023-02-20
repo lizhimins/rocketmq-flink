@@ -18,7 +18,9 @@
 
 package org.apache.flink.connector.rocketmq.source.split;
 
-/** This class extends RocketMQPartitionSplit to track a mutable current offset. */
+/**
+ * This class extends RocketMQPartitionSplit to track a mutable current offset.
+ */
 public class RocketMQPartitionSplitState extends RocketMQPartitionSplit {
 
     private long currentOffset;
@@ -27,9 +29,9 @@ public class RocketMQPartitionSplitState extends RocketMQPartitionSplit {
         super(
                 partitionSplit.getTopicName(),
                 partitionSplit.getBrokerName(),
-                partitionSplit.getPartition(),
+                partitionSplit.getPartitionId(),
                 partitionSplit.getStartingOffset(),
-                partitionSplit.getStoppingTimestamp());
+                partitionSplit.getStoppingOffset());
         this.currentOffset = partitionSplit.getStartingOffset();
     }
 
@@ -50,8 +52,8 @@ public class RocketMQPartitionSplitState extends RocketMQPartitionSplit {
         return new RocketMQPartitionSplit(
                 getTopicName(),
                 getBrokerName(),
-                getPartition(),
+                getPartitionId(),
                 getCurrentOffset(),
-                getStoppingTimestamp());
+                getStoppingOffset());
     }
 }

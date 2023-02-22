@@ -17,9 +17,6 @@
 
 package org.apache.flink.connector.rocketmq.source;
 
-import org.apache.rocketmq.client.consumer.DefaultLitePullConsumer;
-import org.apache.rocketmq.common.protocol.heartbeat.MessageModel;
-
 import org.apache.flink.annotation.PublicEvolving;
 import org.apache.flink.api.common.serialization.DeserializationSchema;
 import org.apache.flink.api.connector.source.Boundedness;
@@ -28,7 +25,8 @@ import org.apache.flink.configuration.Configuration;
 import org.apache.flink.connector.rocketmq.common.config.RocketMQConfigBuilder;
 import org.apache.flink.connector.rocketmq.source.enumerator.initializer.MessageQueueOffsets;
 import org.apache.flink.connector.rocketmq.source.reader.deserializer.RocketMQDeserializationSchema;
-
+import org.apache.rocketmq.client.consumer.DefaultLitePullConsumer;
+import org.apache.rocketmq.common.protocol.heartbeat.MessageModel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -57,7 +55,8 @@ public class RocketMQSourceBuilder<OUT> {
     // The configurations.
     protected RocketMQConfigBuilder configBuilder;
 
-    RocketMQSourceBuilder() {}
+    RocketMQSourceBuilder() {
+    }
 
     /**
      * Configure the access point with which the SDK should communicate.
@@ -130,7 +129,7 @@ public class RocketMQSourceBuilder<OUT> {
      * @param messageModel The type of subscription.
      * @return this PulsarSourceBuilder.
      * @see <a href="https://pulsar.apache.org/docs/en/concepts-messaging/#subscriptions">RocketMQ
-     *     Broadcast Subscriptions</a>
+     * Broadcast Subscriptions</a>
      */
     public RocketMQSourceBuilder<OUT> setMessageModel(MessageModel messageModel) {
         consumer.setMessageModel(messageModel);
@@ -156,7 +155,7 @@ public class RocketMQSourceBuilder<OUT> {
      *
      * <p>Make sure the option could be set only once or with same value.
      *
-     * @param key the key of the property.
+     * @param key   the key of the property.
      * @param value the value of the property.
      * @return this PulsarSourceBuilder.
      */
@@ -210,7 +209,9 @@ public class RocketMQSourceBuilder<OUT> {
 
     // ------------- private helpers  --------------
 
-    /** Helper method for java compiler recognize the generic type. */
+    /**
+     * Helper method for java compiler recognize the generic type.
+     */
     @SuppressWarnings("unchecked")
     private <T extends OUT> RocketMQSourceBuilder<T> specialized() {
         return (RocketMQSourceBuilder<T>) this;

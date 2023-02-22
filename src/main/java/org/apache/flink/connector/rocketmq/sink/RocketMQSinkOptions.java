@@ -23,26 +23,29 @@ import org.apache.flink.connector.rocketmq.common.config.RocketMQOptions;
 
 public class RocketMQSinkOptions extends RocketMQOptions {
 
+    // rocketmq client API config prefix.
+    public static final String PRODUCER_PREFIX = "rocketmq.producer.";
+
+    public static final ConfigOption<String> PRODUCER_GROUP =
+            ConfigOptions.key(PRODUCER_PREFIX + "group").stringType().defaultValue("Flink-Producer");
+
     public static final ConfigOption<String> TOPIC =
-            ConfigOptions.key("topic")
+            ConfigOptions.key(PRODUCER_PREFIX + "topic")
                     .stringType()
                     .noDefaultValue()
                     .withDescription("The name of the persist topic");
 
     public static final ConfigOption<String> TAG =
-            ConfigOptions.key("tag")
+            ConfigOptions.key(PRODUCER_PREFIX + "tag")
                     .stringType()
                     .noDefaultValue()
                     .withDescription("The name of the persist topic");
 
     public static final ConfigOption<String> KEY =
-            ConfigOptions.key("key")
+            ConfigOptions.key(PRODUCER_PREFIX + "key")
                     .stringType()
                     .noDefaultValue()
                     .withDescription("The name of the persist topic");
-
-    public static final ConfigOption<String> PRODUCER_GROUP =
-            ConfigOptions.key("producerGroup").stringType().defaultValue("Flink-Producer");
 
     public static final ConfigOption<Integer> OPTIONAL_WRITE_RETRY_TIMES =
             ConfigOptions.key("retryTimes").intType().defaultValue(10);

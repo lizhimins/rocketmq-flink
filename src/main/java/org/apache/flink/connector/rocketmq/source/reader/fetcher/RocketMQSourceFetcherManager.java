@@ -25,7 +25,7 @@ import org.apache.flink.connector.base.source.reader.fetcher.SingleThreadFetcher
 import org.apache.flink.connector.base.source.reader.fetcher.SplitFetcher;
 import org.apache.flink.connector.base.source.reader.splitreader.SplitReader;
 import org.apache.flink.connector.base.source.reader.synchronization.FutureCompletingBlockingQueue;
-import org.apache.flink.connector.rocketmq.source.reader.SourceMessage;
+import org.apache.flink.connector.rocketmq.source.reader.MessageView;
 import org.apache.flink.connector.rocketmq.source.split.RocketMQPartitionSplit;
 
 import org.slf4j.Logger;
@@ -38,7 +38,7 @@ import java.util.function.Supplier;
 
 @Internal
 public class RocketMQSourceFetcherManager<T>
-        extends SingleThreadFetcherManager<SourceMessage<T>, RocketMQPartitionSplit> {
+        extends SingleThreadFetcherManager<MessageView<T>, RocketMQPartitionSplit> {
 
     private static final Logger LOG = LoggerFactory.getLogger(RocketMQSourceFetcherManager.class);
 
@@ -53,8 +53,8 @@ public class RocketMQSourceFetcherManager<T>
      * @param splitFinishedHook Hook for handling finished splits in split fetchers.
      */
     public RocketMQSourceFetcherManager(
-            FutureCompletingBlockingQueue<RecordsWithSplitIds<SourceMessage<T>>> elementsQueue,
-            Supplier<SplitReader<SourceMessage<T>, RocketMQPartitionSplit>> splitReaderSupplier,
+            FutureCompletingBlockingQueue<RecordsWithSplitIds<MessageView<T>>> elementsQueue,
+            Supplier<SplitReader<MessageView<T>, RocketMQPartitionSplit>> splitReaderSupplier,
             Consumer<Collection<String>> splitFinishedHook) {
         super(elementsQueue, splitReaderSupplier, splitFinishedHook);
     }
@@ -77,7 +77,7 @@ public class RocketMQSourceFetcherManager<T>
     }
 
     private void enqueueOffsetsCommitTask(
-            SplitFetcher<SourceMessage<T>, RocketMQPartitionSplit> splitFetcher,
+            SplitFetcher<MessageView<T>, RocketMQPartitionSplit> splitFetcher,
             Map<MessageQueue, Long> offsetsToCommit) {
 
         // KafkaPartitionSplitReader kafkaReader =

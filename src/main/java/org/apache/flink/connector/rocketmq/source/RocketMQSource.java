@@ -41,7 +41,7 @@ import org.apache.flink.connector.rocketmq.source.metrics.RocketMQSourceReaderMe
 import org.apache.flink.connector.rocketmq.source.reader.RocketMQPartitionSplitReader;
 import org.apache.flink.connector.rocketmq.source.reader.RocketMQRecordEmitter;
 import org.apache.flink.connector.rocketmq.source.reader.RocketMQSourceReader;
-import org.apache.flink.connector.rocketmq.source.reader.SourceMessage;
+import org.apache.flink.connector.rocketmq.source.reader.MessageView;
 import org.apache.flink.connector.rocketmq.source.reader.deserializer.RocketMQDeserializationSchema;
 import org.apache.flink.connector.rocketmq.source.split.RocketMQPartitionSplit;
 import org.apache.flink.connector.rocketmq.source.split.RocketMQPartitionSplitSerializer;
@@ -111,7 +111,7 @@ public class RocketMQSource<OUT>
     public SourceReader<OUT, RocketMQPartitionSplit> createReader(SourceReaderContext readerContext)
             throws Exception {
 
-        FutureCompletingBlockingQueue<RecordsWithSplitIds<SourceMessage<OUT>>> elementsQueue =
+        FutureCompletingBlockingQueue<RecordsWithSplitIds<MessageView<OUT>>> elementsQueue =
                 new FutureCompletingBlockingQueue<>();
 
         deserializationSchema.open(
@@ -130,7 +130,7 @@ public class RocketMQSource<OUT>
         final RocketMQSourceReaderMetrics rocketMQSourceReaderMetrics =
                 new RocketMQSourceReaderMetrics(readerContext.metricGroup());
 
-        Supplier<SplitReader<SourceMessage<OUT>, RocketMQPartitionSplit>> splitReaderSupplier =
+        Supplier<SplitReader<MessageView<OUT>, RocketMQPartitionSplit>> splitReaderSupplier =
                 () ->
                         new RocketMQPartitionSplitReader<>(
                                 sourceConfiguration,
@@ -166,21 +166,12 @@ public class RocketMQSource<OUT>
             SplitEnumeratorContext<RocketMQPartitionSplit> enumContext,
             RocketMQSourceEnumState checkpoint) {
 
-        return null;
-        // return new RocketMQSourceEnumerator(
-        //        topic,
-        //        consumerGroup,
-        //        nameServerAddress,
-        //        accessKey,
-        //        secretKey,
-        //        stopInMs,
-        //        startOffset,
-        //        partitionDiscoveryIntervalMs,
-        //        boundedness,
-        //        enumContext,
-        //        checkpoint.getCurrentAssignment(),
-        //        consumerOffsetMode,
-        //        consumerOffsetTimestamp);
+         return new RocketMQSourceEnumerator(consumer,
+                 startingMessageQueueOffsets,
+                 stoppingMessageQueueOffsets,
+                 sourceConfiguration,
+                 enumContext,
+                 checkpoint.getAssignedPartitions());
     }
 
     @Override

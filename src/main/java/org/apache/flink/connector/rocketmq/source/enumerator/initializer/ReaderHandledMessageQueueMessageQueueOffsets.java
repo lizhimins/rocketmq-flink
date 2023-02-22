@@ -17,10 +17,9 @@
 
 package org.apache.flink.connector.rocketmq.source.enumerator.initializer;
 
+import org.apache.flink.connector.rocketmq.legacy.common.config.OffsetResetStrategy;
 import org.apache.rocketmq.common.consumer.ConsumeFromWhere;
 import org.apache.rocketmq.common.message.MessageQueue;
-
-import org.apache.flink.connector.rocketmq.legacy.common.config.OffsetResetStrategy;
 
 import java.util.Collection;
 import java.util.HashMap;

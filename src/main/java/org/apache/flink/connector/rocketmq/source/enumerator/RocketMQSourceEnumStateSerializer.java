@@ -18,17 +18,20 @@
 
 package org.apache.flink.connector.rocketmq.source.enumerator;
 
-import org.apache.flink.connector.base.source.utils.SerdeUtils;
 import org.apache.flink.connector.rocketmq.source.split.RocketMQPartitionSplit;
-import org.apache.flink.connector.rocketmq.source.split.RocketMQPartitionSplitSerializer;
 import org.apache.flink.core.io.SimpleVersionedSerializer;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.HashSet;
+import java.util.Set;
 
-/** The {@link SimpleVersionedSerializer Serializer} for the enumerator state of RocketMQ source. */
+/**
+ * The {@link SimpleVersionedSerializer Serializer} for the enumerator state of RocketMQ source.
+ */
 public class RocketMQSourceEnumStateSerializer
         implements SimpleVersionedSerializer<RocketMQSourceEnumState> {
 
@@ -41,23 +44,56 @@ public class RocketMQSourceEnumStateSerializer
 
     @Override
     public byte[] serialize(RocketMQSourceEnumState enumState) throws IOException {
-        return SerdeUtils.serializeSplitAssignments(
-                enumState.getCurrentAssignment(), new RocketMQPartitionSplitSerializer());
+        Set<RocketMQPartitionSplit> assignedPartitions = enumState.getAssignedPartitions();
+        try (ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+             DataOutputStream out = new DataOutputStream(byteArrayOutputStream)) {
+            out.writeInt(assignedPartitions.size());
+            for (RocketMQPartitionSplit split : assignedPartitions) {
+                out.writeUTF(split.getTopicName());
+                out.writeUTF(split.getBrokerName());
+                out.writeInt(split.getPartitionId());
+                out.writeLong(split.getStartingOffset());
+                out.writeLong(split.getStoppingOffset());
+            }
+            out.flush();
+            return byteArrayOutputStream.toByteArray();
+        }
     }
 
     @Override
     public RocketMQSourceEnumState deserialize(int version, byte[] serialized) throws IOException {
         // Check whether the version of serialized bytes is supported.
         if (version == getVersion()) {
-            Map<Integer, List<RocketMQPartitionSplit>> currentPartitionAssignment =
-                    SerdeUtils.deserializeSplitAssignments(
-                            serialized, new RocketMQPartitionSplitSerializer(), ArrayList::new);
-            return new RocketMQSourceEnumState(currentPartitionAssignment);
+            return new RocketMQSourceEnumState(deserializeTopicPartitions(serialized));
         }
         throw new IOException(
                 String.format(
                         "The bytes are serialized with version %d, "
                                 + "while this deserializer only supports version up to %d",
                         version, getVersion()));
+    }
+
+    private static Set<RocketMQPartitionSplit> deserializeTopicPartitions(byte[] serializedTopicPartitions)
+            throws IOException {
+        try (ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(serializedTopicPartitions);
+             DataInputStream in = new DataInputStream(byteArrayInputStream)) {
+
+            final int numPartitions = in.readInt();
+            Set<RocketMQPartitionSplit> topicPartitions = new HashSet<>(numPartitions);
+            for (int i = 0; i < numPartitions; i++) {
+                final String topicName = in.readUTF();
+                final String brokerName = in.readUTF();
+                final int partitionId = in.readInt();
+                final long startingOffset = in.readLong();
+                final long stoppingOffset = in.readLong();
+                topicPartitions.add(new RocketMQPartitionSplit(
+                        topicName, brokerName, partitionId, startingOffset, stoppingOffset));
+            }
+            if (in.available() > 0) {
+                throw new IOException("Unexpected trailing bytes in serialized topic partitions");
+            }
+
+            return topicPartitions;
+        }
     }
 }

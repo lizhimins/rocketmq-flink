@@ -63,7 +63,7 @@ import java.util.Set;
  * <p>The returned type are in the format of {@code tuple3(record, offset and timestamp}.
  */
 public class RocketMQPartitionSplitReader<T>
-        implements SplitReader<SourceMessage<T>, RocketMQPartitionSplit> {
+        implements SplitReader<MessageView<T>, RocketMQPartitionSplit> {
     private static final Logger LOG = LoggerFactory.getLogger(RocketMQPartitionSplitReader.class);
 
     private String topic;
@@ -135,8 +135,8 @@ public class RocketMQPartitionSplitReader<T>
     }
 
     @Override
-    public RecordsWithSplitIds<SourceMessage<T>> fetch() throws IOException {
-        RocketMQPartitionSplitRecords<SourceMessage<T>> recordsBySplits =
+    public RecordsWithSplitIds<MessageView<T>> fetch() throws IOException {
+        RocketMQPartitionSplitRecords<MessageView<T>> recordsBySplits =
                 new RocketMQPartitionSplitRecords<>();
         Collection<MessageQueue> messageQueues;
         try {
@@ -224,7 +224,7 @@ public class RocketMQPartitionSplitReader<T>
                             e);
                 }
                 if (messageExts != null) {
-                    Collection<SourceMessage<T>> recordsForSplit =
+                    Collection<MessageView<T>> recordsForSplit =
                             recordsBySplits.recordsForSplit(
                                     messageQueue.getTopic()
                                             + "-"
@@ -314,7 +314,7 @@ public class RocketMQPartitionSplitReader<T>
             Tuple3<String, String, Integer> topicPartition,
             long stoppingTimestamp,
             long currentOffset,
-            RocketMQPartitionSplitRecords<SourceMessage<T>> recordsBySplits) {
+            RocketMQPartitionSplitRecords<MessageView<T>> recordsBySplits) {
         LOG.debug(
                 "{} has reached stopping timestamp {}, current offset is {}",
                 topicPartition.f0 + "-" + topicPartition.f1,

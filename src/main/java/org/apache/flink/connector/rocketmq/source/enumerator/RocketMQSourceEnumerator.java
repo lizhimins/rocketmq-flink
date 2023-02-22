@@ -18,10 +18,6 @@
 
 package org.apache.flink.connector.rocketmq.source.enumerator;
 
-import org.apache.rocketmq.client.consumer.DefaultLitePullConsumer;
-import org.apache.rocketmq.client.exception.MQClientException;
-import org.apache.rocketmq.common.message.MessageQueue;
-
 import org.apache.flink.annotation.Internal;
 import org.apache.flink.annotation.VisibleForTesting;
 import org.apache.flink.api.connector.source.SplitEnumerator;
@@ -31,12 +27,13 @@ import org.apache.flink.api.java.tuple.Tuple3;
 import org.apache.flink.connector.rocketmq.source.config.SourceConfiguration;
 import org.apache.flink.connector.rocketmq.source.enumerator.initializer.MessageQueueOffsets;
 import org.apache.flink.connector.rocketmq.source.split.RocketMQPartitionSplit;
-
+import org.apache.rocketmq.client.consumer.DefaultLitePullConsumer;
+import org.apache.rocketmq.client.exception.MQClientException;
+import org.apache.rocketmq.common.message.MessageQueue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -46,7 +43,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-/** The enumerator class for RocketMQ source. */
+/**
+ * The enumerator class for RocketMQ source.
+ */
 @Internal
 public class RocketMQSourceEnumerator
         implements SplitEnumerator<RocketMQPartitionSplit, RocketMQSourceEnumState> {
@@ -64,6 +63,8 @@ public class RocketMQSourceEnumerator
 
     private final SplitEnumeratorContext<RocketMQPartitionSplit> context;
 
+    private final Set<RocketMQPartitionSplit> assignedPartitions;
+
     // The internal states of the enumerator.
     /**
      * This set is only accessed by the partition discovery callable in the callAsync() method, i.e
@@ -71,7 +72,9 @@ public class RocketMQSourceEnumerator
      */
     private Set<Tuple3<String, String, Integer>> discoveredPartitions;
 
-    /** The current assignment by reader id. Only accessed by the coordinator thread. */
+    /**
+     * The current assignment by reader id. Only accessed by the coordinator thread.
+     */
     private Map<Integer, List<RocketMQPartitionSplit>> readerIdToSplitAssignments;
 
     /**
@@ -87,11 +90,24 @@ public class RocketMQSourceEnumerator
             SourceConfiguration sourceConfiguration,
             SplitEnumeratorContext<RocketMQPartitionSplit> context) {
 
+        this(consumer, startingMessageQueueOffsets, stoppingMessageQueueOffsets,
+                sourceConfiguration, context, Collections.emptySet());
+    }
+
+    public RocketMQSourceEnumerator(
+            DefaultLitePullConsumer consumer,
+            MessageQueueOffsets startingMessageQueueOffsets,
+            MessageQueueOffsets stoppingMessageQueueOffsets,
+            SourceConfiguration sourceConfiguration,
+            SplitEnumeratorContext<RocketMQPartitionSplit> context,
+            Set<RocketMQPartitionSplit> assignedPartitions) {
+
         this.consumer = consumer;
         this.startingMessageQueueOffsets = startingMessageQueueOffsets;
         this.stoppingMessageQueueOffsets = stoppingMessageQueueOffsets;
         this.sourceConfiguration = sourceConfiguration;
         this.context = context;
+        this.assignedPartitions = assignedPartitions;
     }
 
     // public RocketMQSourceEnumerator(
@@ -207,7 +223,8 @@ public class RocketMQSourceEnumerator
 
     @Override
     public RocketMQSourceEnumState snapshotState(long checkpointId) {
-        return new RocketMQSourceEnumState(readerIdToSplitAssignments);
+        //return new RocketMQSourceEnumState(readerIdToSplitAssignments);
+        return null;
     }
 
     @Override
@@ -395,9 +412,9 @@ public class RocketMQSourceEnumerator
      *       topic name).
      * </ul>
      *
-     * @param topic the RocketMQ topic assigned.
-     * @param broker the RocketMQ broker assigned.
-     * @param partition the RocketMQ partition to assign.
+     * @param topic      the RocketMQ topic assigned.
+     * @param broker     the RocketMQ broker assigned.
+     * @param partition  the RocketMQ partition to assign.
      * @param numReaders the total number of readers.
      * @return the id of the subtask that owns the split.
      */

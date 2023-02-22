@@ -18,21 +18,24 @@
 
 package org.apache.flink.connector.rocketmq.source.enumerator;
 
+import org.apache.flink.annotation.Internal;
 import org.apache.flink.connector.rocketmq.source.split.RocketMQPartitionSplit;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /** The state of RocketMQ source enumerator. */
+@Internal
 public class RocketMQSourceEnumState {
 
-    private final Map<Integer, List<RocketMQPartitionSplit>> currentAssignment;
+    private final Set<RocketMQPartitionSplit> assignedPartitions;
 
-    RocketMQSourceEnumState(Map<Integer, List<RocketMQPartitionSplit>> currentAssignment) {
-        this.currentAssignment = currentAssignment;
+    public RocketMQSourceEnumState(Set<RocketMQPartitionSplit> assignedPartitions) {
+        this.assignedPartitions = assignedPartitions;
     }
 
-    public Map<Integer, List<RocketMQPartitionSplit>> getCurrentAssignment() {
-        return currentAssignment;
+    public Set<RocketMQPartitionSplit> getAssignedPartitions() {
+        return assignedPartitions;
     }
 }

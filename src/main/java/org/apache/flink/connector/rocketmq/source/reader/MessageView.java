@@ -20,26 +20,6 @@ package org.apache.flink.connector.rocketmq.source.reader;
 import java.net.SocketAddress;
 import java.util.Map;
 
-public class SourceMessage<T> {
+public interface MessageView<T> {
 
-    private String messageId;
-
-    private String topic;
-    private int flag;
-    private Map<String, String> properties;
-    private byte[] body;
-    private String transactionId;
-    private String brokerName;
-    private int queueId;
-    private int storeSize;
-    private long queueOffset;
-    private int sysFlag;
-    private long bornTimestamp;
-    private SocketAddress bornHost;
-    private long storeTimestamp;
-    private SocketAddress storeHost;
-    private long commitLogOffset;
-    private int bodyCRC;
-    private int reconsumeTimes;
-    private long preparedTransactionOffset;
 }

@@ -18,13 +18,12 @@
 
 package org.apache.flink.connector.rocketmq.source.enumerator.initializer;
 
-import org.apache.rocketmq.common.consumer.ConsumeFromWhere;
-import org.apache.rocketmq.common.message.MessageQueue;
-
 import org.apache.flink.annotation.PublicEvolving;
 import org.apache.flink.connector.rocketmq.legacy.common.config.OffsetResetStrategy;
 import org.apache.flink.connector.rocketmq.source.RocketMQSource;
 import org.apache.flink.connector.rocketmq.source.split.RocketMQPartitionSplit;
+import org.apache.rocketmq.common.consumer.ConsumeFromWhere;
+import org.apache.rocketmq.common.message.MessageQueue;
 
 import java.io.Serializable;
 import java.util.Collection;
@@ -59,10 +58,14 @@ public interface MessageQueueOffsets extends Serializable {
          */
         Map<MessageQueue, Long> committedOffsets(Collection<MessageQueue> partitions);
 
-        /** List min offsets for the specified MessageQueues. */
+        /**
+         * List min offsets for the specified MessageQueues.
+         */
         Map<MessageQueue, Long> minOffsets(Collection<MessageQueue> partitions);
 
-        /** List max offsets for the specified MessageQueues. */
+        /**
+         * List max offsets for the specified MessageQueues.
+         */
         Map<MessageQueue, Long> maxOffsets(Collection<MessageQueue> partitions);
     }
 
@@ -84,9 +87,9 @@ public interface MessageQueueOffsets extends Serializable {
      * does not exist.
      *
      * @param offsetResetStrategy the offset reset strategy to use when the committed offsets do not
-     *     exist.
+     *                            exist.
      * @return an {@link MessageQueueOffsets} which initializes the offsets to the committed
-     *     offsets.
+     * offsets.
      */
     static MessageQueueOffsets committedOffsets(OffsetResetStrategy offsetResetStrategy) {
         return new ReaderHandledMessageQueueMessageQueueOffsets(

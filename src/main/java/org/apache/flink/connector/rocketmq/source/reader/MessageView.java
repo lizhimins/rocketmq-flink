@@ -17,9 +17,36 @@
 
 package org.apache.flink.connector.rocketmq.source.reader;
 
-import java.net.SocketAddress;
+import java.util.Collection;
 import java.util.Map;
 
 public interface MessageView<T> {
 
+    String getMessageId();
+
+    String getTopic();
+
+    String getBrokerName();
+
+    int getQueueId();
+
+    long getQueueOffset();
+
+    String getTag();
+
+    Collection<String> getKeys();
+
+    int getStoreSize();
+
+    byte[] getBody();
+
+    T getValue();
+
+    int getDeliveryAttempt();
+
+    long getEventTime();
+
+    long getIngestionTime();
+
+    Map<String, String> getProperties();
 }

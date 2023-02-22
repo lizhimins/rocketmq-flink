@@ -17,41 +17,129 @@
 
 package org.apache.flink.connector.rocketmq.source.reader;
 
-import java.net.SocketAddress;
+import org.apache.rocketmq.common.message.MessageExt;
+
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Map;
 
 public class MessageViewExt<T> implements MessageView<T> {
 
-    private String messageId;
+    private final String messageId;
 
-    private String topic;
+    private final String topic;
 
-    private T value;
+    private final String brokerName;
 
-    private long eventTime;
+    private final int queueId;
 
-    private long ingestionTime;
+    private final long queueOffset;
 
+    private final int storeSize;
 
+    private final String tag;
 
+    private final Collection<String> keys;
 
+    private final byte[] body;
 
+    /**
+     * message consume times
+     */
+    private final int deliveryAttempt;
 
+    /**
+     * trust message born timestamp, we don't care store timestamp
+     */
+    private final long eventTime;
 
-    private Map<String, String> properties;
-    private byte[] body;
-    private String transactionId;
-    private String brokerName;
-    private int queueId;
-    private int storeSize;
-    private long queueOffset;
-    private int sysFlag;
-    private long bornTimestamp;
-    private SocketAddress bornHost;
-    private long storeTimestamp;
-    private SocketAddress storeHost;
-    private long commitLogOffset;
-    private int bodyCRC;
-    private int reconsumeTimes;
-    private long preparedTransactionOffset;
+    private final long ingestionTime;
+
+    private final Map<String, String> properties;
+
+    public MessageViewExt(MessageExt messageExt) {
+        this.messageId = messageExt.getMsgId();
+        this.topic = messageExt.getTopic();
+        this.brokerName = messageExt.getBrokerName();
+        this.queueId = messageExt.getQueueId();
+        this.queueOffset = messageExt.getQueueOffset();
+        this.storeSize = messageExt.getStoreSize();
+        this.tag = messageExt.getTags();
+        this.keys = Arrays.asList(messageExt.getKeys().split(" "));
+        this.body = messageExt.getBody();
+        this.deliveryAttempt = messageExt.getReconsumeTimes();
+        this.eventTime = messageExt.getBornTimestamp();
+        this.ingestionTime = System.currentTimeMillis();
+        this.properties = messageExt.getProperties();
+    }
+
+    @Override
+    public String getMessageId() {
+        return messageId;
+    }
+
+    @Override
+    public String getTopic() {
+        return topic;
+    }
+
+    @Override
+    public String getBrokerName() {
+        return brokerName;
+    }
+
+    @Override
+    public int getQueueId() {
+        return queueId;
+    }
+
+    @Override
+    public long getQueueOffset() {
+        return queueOffset;
+    }
+
+    @Override
+    public String getTag() {
+        return tag;
+    }
+
+    @Override
+    public Collection<String> getKeys() {
+        return keys;
+    }
+
+    @Override
+    public int getStoreSize() {
+        return storeSize;
+    }
+
+    @Override
+    public byte[] getBody() {
+        return body;
+    }
+
+    @Override
+    public T getValue() {
+        return null;
+    }
+
+    @Override
+    public int getDeliveryAttempt() {
+        return deliveryAttempt;
+    }
+
+    @Override
+    public long getEventTime() {
+        return eventTime;
+    }
+
+    @Override
+    public long getIngestionTime() {
+        return ingestionTime;
+    }
+
+    @Override
+    public Map<String, String> getProperties() {
+        return properties;
+    }
 }

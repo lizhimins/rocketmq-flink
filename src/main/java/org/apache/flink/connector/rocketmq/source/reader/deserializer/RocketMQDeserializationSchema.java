@@ -18,6 +18,7 @@
 
 package org.apache.flink.connector.rocketmq.source.reader.deserializer;
 
+import org.apache.flink.connector.rocketmq.source.reader.MessageView;
 import org.apache.rocketmq.common.message.MessageExt;
 
 import org.apache.flink.annotation.PublicEvolving;
@@ -55,10 +56,10 @@ public interface RocketMQDeserializationSchema<T> extends Serializable, ResultTy
      * records can be buffered in memory or collecting records might delay emitting checkpoint
      * barrier.
      *
-     * @param record The MessageExts to deserialize.
+     * @param messageView The MessageView to deserialize.
      * @param out The collector to put the resulting messages.
      */
-    void deserialize(List<MessageExt> record, Collector<T> out) throws IOException;
+    void deserialize(MessageView messageView, Collector<T> out) throws IOException;
 
     /// **
     // * Wraps a legacy {@link KafkaDeserializationSchema} as the deserializer of the {@link

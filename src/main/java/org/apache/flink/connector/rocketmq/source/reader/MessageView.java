@@ -20,7 +20,7 @@ package org.apache.flink.connector.rocketmq.source.reader;
 import java.util.Collection;
 import java.util.Map;
 
-public interface MessageView<T> {
+public interface MessageView {
 
     String getMessageId();
 
@@ -39,8 +39,6 @@ public interface MessageView<T> {
     int getStoreSize();
 
     byte[] getBody();
-
-    T getValue();
 
     int getDeliveryAttempt();
 

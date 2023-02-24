@@ -17,24 +17,36 @@
 
 package org.apache.flink.connector.rocketmq.source.reader.deserializer;
 
-import org.apache.rocketmq.common.message.MessageExt;
-
 import org.apache.flink.api.common.typeinfo.TypeInformation;
+import org.apache.flink.connector.rocketmq.source.reader.MessageView;
 import org.apache.flink.util.Collector;
 
 import java.io.IOException;
-import java.util.List;
 
 public class RocketMQSchemaWrapper<T> implements RocketMQDeserializationSchema<T> {
-
-    /** The serializable pulsar schema, it wrap the schema with type class. */
-    // private final Schema<T> pulsarSchema;
-
     @Override
-    public void deserialize(List<MessageExt> record, Collector<T> out) throws IOException {}
+    public void deserialize(MessageView messageView, Collector<T> out) throws IOException {
+
+    }
 
     @Override
     public TypeInformation<T> getProducedType() {
         return null;
     }
+    //
+    ///** The serializable pulsar schema, it wrap the schema with type class. */
+    //// private final Schema<T> pulsarSchema;
+    //
+    //@Override
+    //public void deserialize(List<MessageExt> record, Collector<T> out) throws IOException {}
+    //
+    //@Override
+    //public TypeInformation<T> getProducedType() {
+    //    return null;
+    //}
+    //
+    //@Override
+    //public void deserialize(MessageView record, Collector<T> out) throws IOException {
+    //
+    //}
 }

@@ -23,7 +23,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Map;
 
-public class MessageViewExt<T> implements MessageView<T> {
+public class MessageViewExt implements MessageView {
 
     private final String messageId;
 
@@ -116,11 +116,6 @@ public class MessageViewExt<T> implements MessageView<T> {
     @Override
     public byte[] getBody() {
         return body;
-    }
-
-    @Override
-    public T getValue() {
-        return null;
     }
 
     @Override

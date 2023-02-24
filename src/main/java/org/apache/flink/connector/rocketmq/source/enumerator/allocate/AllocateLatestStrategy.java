@@ -21,7 +21,7 @@ import org.apache.rocketmq.common.message.MessageQueue;
 
 import java.util.List;
 
-public class AllocateDiscardStrategy implements AllocateStrategy {
+public class AllocateLatestStrategy implements AllocateStrategy {
 
     @Override
     public String getStrategyName() {

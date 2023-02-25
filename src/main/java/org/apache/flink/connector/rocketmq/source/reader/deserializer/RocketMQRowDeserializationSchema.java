@@ -18,6 +18,7 @@
 
 package org.apache.flink.connector.rocketmq.source.reader.deserializer;
 
+import org.apache.flink.connector.rocketmq.source.reader.MessageView;
 import org.apache.rocketmq.common.message.MessageExt;
 
 import org.apache.flink.annotation.VisibleForTesting;
@@ -28,6 +29,7 @@ import org.apache.flink.table.api.TableSchema;
 import org.apache.flink.table.data.RowData;
 import org.apache.flink.util.Collector;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -65,10 +67,15 @@ public class RocketMQRowDeserializationSchema implements RocketMQDeserialization
     }
 
     @Override
-    public void deserialize(List<MessageExt> input, Collector<RowData> collector) {
-        extractMessages(input);
-        deserializationSchema.deserialize(bytesMessages, collector);
+    public void deserialize(MessageView messageView, Collector<RowData> collector) throws IOException {
+
+        //extractMessages(input);
+        //deserializationSchema.deserialize(bytesMessages, collector);
     }
+
+    //@Override
+    //public void deserialize(List<MessageExt> input, Collector<RowData> collector) {
+    //}
 
     @Override
     public TypeInformation<RowData> getProducedType() {

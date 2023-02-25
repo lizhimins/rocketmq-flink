@@ -24,11 +24,14 @@ import org.slf4j.LoggerFactory;
 import java.util.concurrent.Callable;
 
 public class RetryUtil {
+
     private static final Logger log = LoggerFactory.getLogger(RetryUtil.class);
 
     private static final long INITIAL_BACKOFF = 200;
     private static final long MAX_BACKOFF = 5000;
     private static final int MAX_ATTEMPTS = 5;
+
+    public static final boolean DEBUG = false;
 
     private RetryUtil() {}
 
@@ -58,7 +61,11 @@ public class RetryUtil {
                     }
                     throw new RuntimeException(ex);
                 }
-                log.error("{}, retry {}/{}", errorMsg, retries, MAX_ATTEMPTS, ex);
+                if (DEBUG) {
+                    log.debug("{}, retry {}/{}", errorMsg, retries, MAX_ATTEMPTS, ex);
+                } else {
+                    log.error("{}, retry {}/{}", errorMsg, retries, MAX_ATTEMPTS, ex);
+                }
                 retries++;
             }
             waitForMs(backoff);

@@ -21,7 +21,12 @@ public class RocketMQSourceTest {
                 .setConfig(RocketMQOptions.OPTIONAL_SECRET_KEY, "secretKey")
                 .setTopics("flink-source-topic")
                 .setGroupId("flink-source-group")
+
+                .setStartingOffsets(MessageQueueOffsets.earliest())
                 .setStartingOffsets(MessageQueueOffsets.latest())
+                .setStartingOffsets(MessageQueueOffsets.committedOffsets())
+                .setStartingOffsets(MessageQueueOffsets.timestamp(System.currentTimeMillis()))
+
                 .setDeserializer(new RocketMQDeserializationSchema<String>() {
                     @Override
                     public void deserialize(MessageView messageView, Collector<String> out) {

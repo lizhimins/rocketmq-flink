@@ -17,6 +17,7 @@
 
 package org.apache.flink.connector.rocketmq.source.reader.deserializer;
 
+import org.apache.flink.connector.rocketmq.source.reader.MessageView;
 import org.apache.rocketmq.common.message.MessageExt;
 
 import org.apache.flink.annotation.Internal;
@@ -50,7 +51,9 @@ public class RocketMQDeserializationSchemaWrapper<T> implements RocketMQDeserial
     }
 
     @Override
-    public void deserialize(List<MessageExt> record, Collector<T> out) throws IOException {}
+    public void deserialize(MessageView messageView, Collector<T> out) throws IOException {
+
+    }
 
     @Override
     public TypeInformation<T> getProducedType() {

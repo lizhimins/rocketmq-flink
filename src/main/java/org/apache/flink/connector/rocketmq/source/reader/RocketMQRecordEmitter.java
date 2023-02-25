@@ -24,11 +24,11 @@ import org.apache.flink.connector.rocketmq.source.split.RocketMQPartitionSplitSt
 
 /** The {@link RecordEmitter} implementation for {@link RocketMQSourceReader}. */
 public class RocketMQRecordEmitter<T>
-        implements RecordEmitter<MessageView<T>, T, RocketMQPartitionSplitState> {
+        implements RecordEmitter<MessageView, T, RocketMQPartitionSplitState> {
 
     @Override
     public void emitRecord(
-            MessageView<T> element,
+            MessageView element,
             SourceOutput<T> output,
             RocketMQPartitionSplitState splitState) {
 

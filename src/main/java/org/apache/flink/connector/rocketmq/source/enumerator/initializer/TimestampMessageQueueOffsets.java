@@ -24,7 +24,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
-public class TimestampMessageQueueOffsets implements MessageQueueOffsets {
+class TimestampMessageQueueOffsets implements MessageQueueOffsets {
     private static final long serialVersionUID = 2932230571773627233L;
     private final long startingTimestamp;
 
@@ -35,7 +35,7 @@ public class TimestampMessageQueueOffsets implements MessageQueueOffsets {
     @Override
     public Map<MessageQueue, Long> getMessageQueueOffsets(
             Collection<MessageQueue> partitions,
-            PartitionOffsetsRetriever partitionOffsetsRetriever) {
+            MessageQueueOffsetsRetriever messageQueueOffsetsRetriever) {
         Map<MessageQueue, Long> startingTimestamps = new HashMap<>();
         Map<MessageQueue, Long> initialOffsets = new HashMap<>();
 
@@ -45,9 +45,9 @@ public class TimestampMessageQueueOffsets implements MessageQueueOffsets {
         // this case, we just use the latest offset.
         // We need to get the latest offsets before querying offsets by time to ensure that
         // no message is going to be missed.
-        // Map<MessageQueue, Long> endOffsets = partitionOffsetsRetriever.maxOffsets(partitions);
+        // Map<MessageQueue, Long> endOffsets = messageQueueOffsetsRetriever.maxOffsets(partitions);
         // partitions.forEach(tp -> startingTimestamps.put(tp, startingTimestamp));
-        // partitionOffsetsRetriever
+        // messageQueueOffsetsRetriever
         //        .offsetsForTimes(startingTimestamps)
         //        .forEach(
         //                (tp, offsetMetadata) -> {

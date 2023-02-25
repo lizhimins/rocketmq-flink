@@ -63,7 +63,7 @@ import java.util.Set;
  * <p>The returned type are in the format of {@code tuple3(record, offset and timestamp}.
  */
 public class RocketMQPartitionSplitReader<T>
-        implements SplitReader<MessageView<T>, RocketMQPartitionSplit> {
+        implements SplitReader<MessageView, RocketMQPartitionSplit> {
     private static final Logger LOG = LoggerFactory.getLogger(RocketMQPartitionSplitReader.class);
 
     private String topic;
@@ -135,8 +135,8 @@ public class RocketMQPartitionSplitReader<T>
     }
 
     @Override
-    public RecordsWithSplitIds<MessageView<T>> fetch() throws IOException {
-        RocketMQPartitionSplitRecords<MessageView<T>> recordsBySplits =
+    public RecordsWithSplitIds<MessageView> fetch() throws IOException {
+        RocketMQPartitionSplitRecords<MessageView> recordsBySplits =
                 new RocketMQPartitionSplitRecords<>();
         Collection<MessageQueue> messageQueues;
         try {
@@ -224,7 +224,7 @@ public class RocketMQPartitionSplitReader<T>
                             e);
                 }
                 if (messageExts != null) {
-                    Collection<MessageView<T>> recordsForSplit =
+                    Collection<MessageView> recordsForSplit =
                             recordsBySplits.recordsForSplit(
                                     messageQueue.getTopic()
                                             + "-"
@@ -244,19 +244,15 @@ public class RocketMQPartitionSplitReader<T>
                         }
                         // Add the record to the partition collector.
                         try {
-                            deserializationSchema.deserialize(
-                                    Collections.singletonList(messageExt), collector);
-                            // collector
-                            //        .getRecords()
-                            //        .forEach(
-                            //                r ->
-                            //                        recordsForSplit.add(
-                            //                                new Tuple3<>(
-                            //                                        r,
-                            //                                        messageExt.getQueueOffset(),
-                            //                                        messageExt
+                            deserializationSchema.deserialize(new MessageViewExt(messageExt), collector);
+                            //collector.getRecords().forEach(
+                            //               r -> recordsForSplit.add(
+                            //                               new Tuple3<>(
+                            //                                       r,
+                            //                                       messageExt.getQueueOffset(),
+                            //                                       messageExt
                             //
-                            // .getStoreTimestamp())));
+                            //.getStoreTimestamp())));
                         } catch (Exception e) {
                             throw new IOException(
                                     "Failed to deserialize consumer record due to", e);
@@ -314,7 +310,7 @@ public class RocketMQPartitionSplitReader<T>
             Tuple3<String, String, Integer> topicPartition,
             long stoppingTimestamp,
             long currentOffset,
-            RocketMQPartitionSplitRecords<MessageView<T>> recordsBySplits) {
+            RocketMQPartitionSplitRecords<MessageView> recordsBySplits) {
         LOG.debug(
                 "{} has reached stopping timestamp {}, current offset is {}",
                 topicPartition.f0 + "-" + topicPartition.f1,

@@ -43,7 +43,7 @@ public class SpecifiedMessageQueueMessageQueueOffsets
     @Override
     public Map<MessageQueue, Long> getMessageQueueOffsets(
             Collection<MessageQueue> partitions,
-            PartitionOffsetsRetriever partitionOffsetsRetriever) {
+            MessageQueueOffsetsRetriever messageQueueOffsetsRetriever) {
         Map<MessageQueue, Long> offsets = new HashMap<>();
         List<MessageQueue> toLookup = new ArrayList<>();
         for (MessageQueue tp : partitions) {
@@ -57,16 +57,16 @@ public class SpecifiedMessageQueueMessageQueueOffsets
         if (!toLookup.isEmpty()) {
             // First check the committed offsets.
             Map<MessageQueue, Long> committedOffsets =
-                    partitionOffsetsRetriever.committedOffsets(toLookup);
+                    messageQueueOffsetsRetriever.committedOffsets(toLookup);
             offsets.putAll(committedOffsets);
             toLookup.removeAll(committedOffsets.keySet());
 
             switch (offsetResetStrategy) {
                 case EARLIEST:
-                    offsets.putAll(partitionOffsetsRetriever.minOffsets(toLookup));
+                    offsets.putAll(messageQueueOffsetsRetriever.minOffsets(toLookup));
                     break;
                 case LATEST:
-                    offsets.putAll(partitionOffsetsRetriever.maxOffsets(toLookup));
+                    offsets.putAll(messageQueueOffsetsRetriever.maxOffsets(toLookup));
                     break;
                 default:
                     throw new IllegalStateException(

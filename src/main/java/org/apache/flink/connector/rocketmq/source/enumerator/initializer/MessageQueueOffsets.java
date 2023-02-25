@@ -22,6 +22,8 @@ import org.apache.flink.annotation.PublicEvolving;
 import org.apache.flink.connector.rocketmq.legacy.common.config.OffsetResetStrategy;
 import org.apache.flink.connector.rocketmq.source.RocketMQSource;
 import org.apache.flink.connector.rocketmq.source.split.RocketMQPartitionSplit;
+import org.apache.rocketmq.client.consumer.DefaultLitePullConsumer;
+import org.apache.rocketmq.client.exception.MQClientException;
 import org.apache.rocketmq.common.consumer.ConsumeFromWhere;
 import org.apache.rocketmq.common.message.MessageQueue;
 
@@ -42,7 +44,7 @@ public interface MessageQueueOffsets extends Serializable {
 
     Map<MessageQueue, Long> getMessageQueueOffsets(
             Collection<MessageQueue> partitions,
-            PartitionOffsetsRetriever partitionOffsetsRetriever);
+            MessageQueueOffsetsRetriever messageQueueOffsetsRetriever);
 
     OffsetResetStrategy getAutoOffsetResetStrategy();
 
@@ -50,23 +52,28 @@ public interface MessageQueueOffsets extends Serializable {
      * An interface that provides necessary information to the {@link MessageQueueOffsets} to get
      * the initial offsets of the RocketMQ message queues.
      */
-    interface PartitionOffsetsRetriever {
+    interface MessageQueueOffsetsRetriever {
 
         /**
          * The group id should be the set for {@link RocketMQSource } before invoking this method.
          * Otherwise, an {@code IllegalStateException} will be thrown.
          */
-        Map<MessageQueue, Long> committedOffsets(Collection<MessageQueue> partitions);
+        Map<MessageQueue, Long> committedOffsets(Collection<MessageQueue> messageQueues);
 
         /**
          * List min offsets for the specified MessageQueues.
          */
-        Map<MessageQueue, Long> minOffsets(Collection<MessageQueue> partitions);
+        Map<MessageQueue, Long> minOffsets(Collection<MessageQueue> messageQueues);
 
         /**
          * List max offsets for the specified MessageQueues.
          */
-        Map<MessageQueue, Long> maxOffsets(Collection<MessageQueue> partitions);
+        Map<MessageQueue, Long> maxOffsets(Collection<MessageQueue> messageQueues);
+
+        /**
+         * List max offsets for the specified MessageQueues.
+         */
+        Map<MessageQueue, Long> offsetsForTimes(Map<MessageQueue, Long> messageQueueWithTimeMap) throws MQClientException;
     }
 
     // --------------- factory methods ---------------
@@ -96,33 +103,31 @@ public interface MessageQueueOffsets extends Serializable {
                 ConsumeFromWhere.CONSUME_FROM_LAST_OFFSET, offsetResetStrategy);
     }
 
-    /// **
-    // * Get an {@link MessageQueueOffsets} which initializes the offsets in each partition so that
-    // the
-    // * initialized offset is the offset of the first record whose record timestamp is greater than
-    // * or equals the give timestamp (milliseconds).
-    // *
-    // * @param timestamp the timestamp (milliseconds) to start the consumption.
-    // * @return an {@link MessageQueueOffsets} which initializes the offsets based on the given
-    // *     timestamp.
-    // * @see KafkaAdminClient#listOffsets(Map)
-    // */
-    // static MessageQueueOffsets timestamp(long timestamp) {
-    //    return new TimestampMessageQueueOffsets(timestamp);
-    // }
+    /**
+     * Get an {@link MessageQueueOffsets} which initializes the offsets in each partition so that
+     * the
+     * initialized offset is the offset of the first record whose record timestamp is greater than
+     * or equals the give timestamp (milliseconds).
+     *
+     * @param timestamp the timestamp (milliseconds) to start the consumption.
+     * @return an {@link MessageQueueOffsets} which initializes the offsets based on the given
+     * timestamp.
+     */
+    static MessageQueueOffsets timestamp(long timestamp) {
+        return new TimestampMessageQueueOffsets(timestamp);
+    }
 
-    /// **
-    // * Get an {@link MessageQueueOffsets} which initializes the offsets to the earliest available
-    // * offsets of each partition.
-    // *
-    // * @return an {@link MessageQueueOffsets} which initializes the offsets to the earliest
-    // available
-    // *     offsets.
-    // */
-    // static MessageQueueOffsets earliest() {
-    //    return new ReaderHandledMessageQueueMessageQueueOffsets(
-    //            KafkaPartitionSplit.EARLIEST_OFFSET, OffsetResetStrategy.EARLIEST);
-    // }
+    /**
+     * Get an {@link MessageQueueOffsets} which initializes the offsets to the earliest available
+     * offsets of each partition.
+     *
+     * @return an {@link MessageQueueOffsets} which initializes the offsets to the earliest
+     * available offsets.
+     */
+    static MessageQueueOffsets earliest() {
+        return new ReaderHandledMessageQueueMessageQueueOffsets(
+                ConsumeFromWhere.CONSUME_FROM_FIRST_OFFSET, OffsetResetStrategy.EARLIEST);
+    }
 
     /**
      * Get an {@link MessageQueueOffsets} which initializes the offsets to the latest offsets of
@@ -135,33 +140,29 @@ public interface MessageQueueOffsets extends Serializable {
                 ConsumeFromWhere.CONSUME_FROM_LAST_OFFSET, OffsetResetStrategy.LATEST);
     }
 
-    /// **
-    // * Get an {@link MessageQueueOffsets} which initializes the offsets to the specified offsets.
-    // *
-    // * @param offsets the specified offsets for each partition.
-    // * @return an {@link MessageQueueOffsets} which initializes the offsets to the specified
-    // offsets.
-    // */
-    // static MessageQueueOffsets offsets(Map<TopicPartition, Long> offsets) {
-    //    return new SpecifiedMessageQueueMessageQueueOffsets(offsets,
-    // OffsetResetStrategy.EARLIEST);
-    // }
-    //
-    /// **
-    // * Get an {@link MessageQueueOffsets} which initializes the offsets to the specified offsets.
-    // Use
-    // * the given {@link OffsetResetStrategy} to initialize the offsets in case the specified
-    // offset
-    // * is out of range.
-    // *
-    // * @param offsets the specified offsets for each partition.
-    // * @param offsetResetStrategy the {@link OffsetResetStrategy} to use when the specified offset
-    // *     is out of range.
-    // * @return an {@link MessageQueueOffsets} which initializes the offsets to the specified
-    // offsets.
-    // */
-    // static MessageQueueOffsets offsets(
-    //        Map<MessageQueue, Long> offsets, OffsetResetStrategy offsetResetStrategy) {
-    //    return new SpecifiedMessageQueueMessageQueueOffsets(offsets, offsetResetStrategy);
-    // }
+    /**
+     * Get an {@link MessageQueueOffsets} which initializes the offsets to the specified offsets.
+     *
+     * @param offsets the specified offsets for each partition.
+     * @return an {@link MessageQueueOffsets} which initializes the offsets to the specified
+     * offsets.
+     */
+    static MessageQueueOffsets offsets(Map<MessageQueue, Long> offsets) {
+        return new SpecifiedMessageQueueMessageQueueOffsets(offsets, OffsetResetStrategy.EARLIEST);
+    }
+
+    /**
+     * Get an {@link MessageQueueOffsets} which initializes the offsets to the specified offsets.
+     * Use the given {@link OffsetResetStrategy} to initialize the offsets in case the specified
+     * offset is out of range.
+     *
+     * @param offsets             the specified offsets for each partition.
+     * @param offsetResetStrategy the {@link OffsetResetStrategy} to use when the specified offset
+     *                            is out of range.
+     * @return an {@link MessageQueueOffsets} which initializes the offsets to the specified
+     * offsets.
+     */
+    static MessageQueueOffsets offsets(Map<MessageQueue, Long> offsets, OffsetResetStrategy offsetResetStrategy) {
+        return new SpecifiedMessageQueueMessageQueueOffsets(offsets, offsetResetStrategy);
+    }
 }

@@ -35,14 +35,14 @@ import java.util.function.Supplier;
 /** The source reader for RocketMQ partitions. */
 public class RocketMQSourceReader<T>
         extends SingleThreadMultiplexSourceReaderBase<
-        MessageView<T>, T, RocketMQPartitionSplit, RocketMQPartitionSplitState> {
+        MessageView, T, RocketMQPartitionSplit, RocketMQPartitionSplitState> {
 
     private final RocketMQSourceReaderMetrics rocketMQSourceReaderMetrics;
 
     public RocketMQSourceReader(
-            FutureCompletingBlockingQueue<RecordsWithSplitIds<MessageView<T>>> elementsQueue,
-            Supplier<SplitReader<MessageView<T>, RocketMQPartitionSplit>> splitReaderSupplier,
-            RecordEmitter<MessageView<T>, T, RocketMQPartitionSplitState> recordEmitter,
+            FutureCompletingBlockingQueue<RecordsWithSplitIds<MessageView>> elementsQueue,
+            Supplier<SplitReader<MessageView, RocketMQPartitionSplit>> splitReaderSupplier,
+            RecordEmitter<MessageView, T, RocketMQPartitionSplitState> recordEmitter,
             Configuration config,
             SourceReaderContext context,
             RocketMQSourceReaderMetrics rocketMQSourceReaderMetrics) {

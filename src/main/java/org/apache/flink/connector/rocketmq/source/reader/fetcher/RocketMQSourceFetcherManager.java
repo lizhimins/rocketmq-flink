@@ -38,7 +38,7 @@ import java.util.function.Supplier;
 
 @Internal
 public class RocketMQSourceFetcherManager<T>
-        extends SingleThreadFetcherManager<MessageView<T>, RocketMQPartitionSplit> {
+        extends SingleThreadFetcherManager<MessageView, RocketMQPartitionSplit> {
 
     private static final Logger LOG = LoggerFactory.getLogger(RocketMQSourceFetcherManager.class);
 
@@ -53,8 +53,8 @@ public class RocketMQSourceFetcherManager<T>
      * @param splitFinishedHook Hook for handling finished splits in split fetchers.
      */
     public RocketMQSourceFetcherManager(
-            FutureCompletingBlockingQueue<RecordsWithSplitIds<MessageView<T>>> elementsQueue,
-            Supplier<SplitReader<MessageView<T>, RocketMQPartitionSplit>> splitReaderSupplier,
+            FutureCompletingBlockingQueue<RecordsWithSplitIds<MessageView>> elementsQueue,
+            Supplier<SplitReader<MessageView, RocketMQPartitionSplit>> splitReaderSupplier,
             Consumer<Collection<String>> splitFinishedHook) {
         super(elementsQueue, splitReaderSupplier, splitFinishedHook);
     }
@@ -77,7 +77,7 @@ public class RocketMQSourceFetcherManager<T>
     }
 
     private void enqueueOffsetsCommitTask(
-            SplitFetcher<MessageView<T>, RocketMQPartitionSplit> splitFetcher,
+            SplitFetcher<MessageView, RocketMQPartitionSplit> splitFetcher,
             Map<MessageQueue, Long> offsetsToCommit) {
 
         // KafkaPartitionSplitReader kafkaReader =

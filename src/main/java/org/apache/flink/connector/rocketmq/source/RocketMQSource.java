@@ -111,7 +111,7 @@ public class RocketMQSource<OUT>
     public SourceReader<OUT, RocketMQPartitionSplit> createReader(SourceReaderContext readerContext)
             throws Exception {
 
-        FutureCompletingBlockingQueue<RecordsWithSplitIds<MessageView<OUT>>> elementsQueue =
+        FutureCompletingBlockingQueue<RecordsWithSplitIds<MessageView>> elementsQueue =
                 new FutureCompletingBlockingQueue<>();
 
         deserializationSchema.open(
@@ -130,7 +130,7 @@ public class RocketMQSource<OUT>
         final RocketMQSourceReaderMetrics rocketMQSourceReaderMetrics =
                 new RocketMQSourceReaderMetrics(readerContext.metricGroup());
 
-        Supplier<SplitReader<MessageView<OUT>, RocketMQPartitionSplit>> splitReaderSupplier =
+        Supplier<SplitReader<MessageView, RocketMQPartitionSplit>> splitReaderSupplier =
                 () ->
                         new RocketMQPartitionSplitReader<>(
                                 sourceConfiguration,

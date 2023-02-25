@@ -41,7 +41,7 @@ public class ReaderHandledMessageQueueMessageQueueOffsets
     @Override
     public Map<MessageQueue, Long> getMessageQueueOffsets(
             Collection<MessageQueue> partitions,
-            PartitionOffsetsRetriever partitionOffsetsRetriever) {
+            MessageQueueOffsetsRetriever messageQueueOffsetsRetriever) {
 
         Map<MessageQueue, Long> initialOffsets = new HashMap<>();
         for (MessageQueue tp : partitions) {

@@ -64,6 +64,7 @@ import java.util.Set;
  */
 public class RocketMQPartitionSplitReader<T>
         implements SplitReader<MessageView, RocketMQPartitionSplit> {
+
     private static final Logger LOG = LoggerFactory.getLogger(RocketMQPartitionSplitReader.class);
 
     private String topic;

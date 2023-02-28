@@ -73,7 +73,7 @@ public interface MessageQueueOffsets extends Serializable {
         /**
          * List max offsets for the specified MessageQueues.
          */
-        Map<MessageQueue, Long> offsetsForTimes(Map<MessageQueue, Long> messageQueueWithTimeMap) throws MQClientException;
+        Map<MessageQueue, Long> offsetsForTimes(Map<MessageQueue, Long> messageQueueWithTimeMap);
     }
 
     // --------------- factory methods ---------------

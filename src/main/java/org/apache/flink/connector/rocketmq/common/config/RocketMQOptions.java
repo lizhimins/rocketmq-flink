@@ -79,7 +79,7 @@ public class RocketMQOptions {
                                     + "when the client communication layer receives a network request");
 
     public static final ConfigOption<Long> PARTITION_DISCOVERY_INTERVAL_MS =
-            ConfigOptions.key(CLIENT_CONFIG_PREFIX + "partitionDiscoveryIntervalMs")
+            ConfigOptions.key(CLIENT_CONFIG_PREFIX + "partition.discovery.interval.ms")
                     .longType()
                     .defaultValue(10000L)
                     .withDescription(

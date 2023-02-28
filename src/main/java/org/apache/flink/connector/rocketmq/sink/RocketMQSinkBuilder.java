@@ -20,12 +20,15 @@ package org.apache.flink.connector.rocketmq.sink;
 import org.apache.flink.annotation.PublicEvolving;
 import org.apache.flink.api.common.ExecutionConfig;
 import org.apache.flink.api.java.ClosureCleaner;
+import org.apache.flink.configuration.ConfigOption;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.connector.base.DeliveryGuarantee;
 import org.apache.flink.connector.rocketmq.common.config.RocketMQConfigBuilder;
 import org.apache.flink.connector.rocketmq.sink.writer.serializer.RocketMQSerializationSchema;
 import org.apache.flink.connector.rocketmq.source.RocketMQSource;
 
+import org.apache.flink.connector.rocketmq.source.RocketMQSourceBuilder;
+import org.apache.flink.connector.rocketmq.source.RocketMQSourceOptions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -127,6 +130,20 @@ public class RocketMQSinkBuilder<IN> {
     }
 
     /**
+     * Set an arbitrary property for the RocketMQ source. The valid keys can be found in {@link RocketMQSourceOptions}.
+     *
+     * <p>Make sure the option could be set only once or with same value.
+     *
+     * @param key   the key of the property.
+     * @param value the value of the property.
+     * @return this RocketMQSourceBuilder.
+     */
+    public <T> RocketMQSinkBuilder<IN> setConfig(ConfigOption<T> key, T value) {
+        configBuilder.set(key, value);
+        return this;
+    }
+
+    /**
      * Set arbitrary properties for the PulsarSource and Pulsar Consumer. The valid keys can be
      * found in {@link PulsarSourceOptions} and {@link PulsarOptions}.
      *
@@ -159,9 +176,9 @@ public class RocketMQSinkBuilder<IN> {
      * @param recordSerializer
      * @return {@link KafkaSinkBuilder}
      */
-    public RocketMQSinkBuilder<IN> setRecordSerializer(
-            RocketMQSerializationSchema<IN> recordSerializer) {
-        this.serializer = checkNotNull(recordSerializer, "serializer is null");
+    public RocketMQSinkBuilder<IN> setSerializer(
+            RocketMQSerializationSchema<IN> serializer) {
+        this.serializer = checkNotNull(serializer, "serializer is null");
         ClosureCleaner.clean(this.serializer, ExecutionConfig.ClosureCleanerLevel.RECURSIVE, true);
         return this;
     }

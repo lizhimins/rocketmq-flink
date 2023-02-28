@@ -23,9 +23,9 @@ import org.apache.flink.api.connector.source.Boundedness;
 import org.apache.flink.configuration.ConfigOption;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.connector.rocketmq.common.config.RocketMQConfigBuilder;
+import org.apache.flink.connector.rocketmq.source.config.SourceConfiguration;
 import org.apache.flink.connector.rocketmq.source.enumerator.initializer.MessageQueueOffsets;
 import org.apache.flink.connector.rocketmq.source.reader.deserializer.RocketMQDeserializationSchema;
-import org.apache.rocketmq.client.consumer.DefaultLitePullConsumer;
 import org.apache.rocketmq.common.protocol.heartbeat.MessageModel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,13 +34,15 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
 
+import static org.apache.flink.connector.rocketmq.source.RocketMQSourceOptions.SOURCE_CONFIG_VALIDATOR;
+
 @PublicEvolving
 public class RocketMQSourceBuilder<OUT> {
 
     private static final Logger log = LoggerFactory.getLogger(RocketMQSourceBuilder.class);
 
-    // The subscriber specifies the partitions to subscribe to.
-    protected DefaultLitePullConsumer consumer;
+    // The consumer specifies the message queue to pull messages.
+    protected InnerConsumerImpl consumer;
 
     // Users can specify the starting / stopping offset initializer.
     private MessageQueueOffsets startingMessageQueueOffsets;
@@ -62,40 +64,43 @@ public class RocketMQSourceBuilder<OUT> {
      * Configure the access point with which the SDK should communicate.
      *
      * @param endpoints address of service.
-     * @return the client configuration builder instance.
+     * @return this RocketMQSourceBuilder.
      */
     public RocketMQSourceBuilder<OUT> setEndpoints(String endpoints) {
-        consumer.setNamesrvAddr(endpoints);
+        configBuilder.set(RocketMQSourceOptions.ENDPOINTS, endpoints);
         return this;
     }
 
     /**
-     * Sets the consumer group id of the KafkaSource.
+     * Sets the consumer group id of the RocketMQSource.
      *
-     * @param groupId the group id of the KafkaSource.
-     * @return this KafkaSourceBuilder.
+     * @param groupId the group id of the RocketMQSource.
+     * @return this RocketMQSourceBuilder.
      */
     public RocketMQSourceBuilder<OUT> setGroupId(String groupId) {
+        configBuilder.set(RocketMQSourceOptions.CONSUMER_GROUP, groupId);
         return this;
     }
 
     /**
-     * Set a list of topics the KafkaSource should consume from. All the topics in the list should
-     * have existed in the Kafka cluster. Otherwise, an exception will be thrown.
+     * Set a list of topics the RocketMQSource should consume from.
+     * All the topics in the list should have existed in the RocketMQ cluster.
+     * Otherwise, an exception will be thrown.
      *
      * @param topics the list of topics to consume from.
-     * @return this KafkaSourceBuilder.
+     * @return this RocketMQSourceBuilder.
      */
     public RocketMQSourceBuilder<OUT> setTopics(List<String> topics) {
         return this;
     }
 
     /**
-     * Set a list of topics the KafkaSource should consume from. All the topics in the list should
-     * have existed in the Kafka cluster. Otherwise, an exception will be thrown.
+     * Set a list of topics the RocketMQSource should consume from.
+     * All the topics in the list should have existed in the RocketMQ cluster.
+     * Otherwise, an exception will be thrown.
      *
      * @param topics the list of topics to consume from.
-     * @return this KafkaSourceBuilder.
+     * @return this RocketMQSourceBuilder.
      */
     public RocketMQSourceBuilder<OUT> setTopics(String... topics) {
         return this.setTopics(Arrays.asList(topics));
@@ -124,15 +129,13 @@ public class RocketMQSourceBuilder<OUT> {
      * now, rocketmq only support broadcast mode when broker version is v4 {@link MessageModel} is
      * the consuming behavior for rocketmq, we would generate different split by the given
      * subscription type. Please take some time to consider which subscription type matches your
-     * application best. Default is {@link SubscriptionType#Shared}.
+     * application best. Default is {@link MessageModel#CLUSTERING}.
      *
      * @param messageModel The type of subscription.
-     * @return this PulsarSourceBuilder.
-     * @see <a href="https://pulsar.apache.org/docs/en/concepts-messaging/#subscriptions">RocketMQ
-     * Broadcast Subscriptions</a>
+     * @return this RocketMQSourceBuilder
      */
     public RocketMQSourceBuilder<OUT> setMessageModel(MessageModel messageModel) {
-        consumer.setMessageModel(messageModel);
+        configBuilder.set(RocketMQSourceOptions.MESSAGE_MODEL, messageModel);
         return this;
     }
 
@@ -150,14 +153,13 @@ public class RocketMQSourceBuilder<OUT> {
     }
 
     /**
-     * Set an arbitrary property for the PulsarSource and Pulsar Consumer. The valid keys can be
-     * found in {@link PulsarSourceOptions} and {@link PulsarOptions}.
-     *
-     * <p>Make sure the option could be set only once or with same value.
+     * Set an arbitrary property for the RocketMQ source.
+     * The valid keys can be found in {@link RocketMQSourceOptions}.
+     * Make sure the option could be set only once or with same value.
      *
      * @param key   the key of the property.
      * @param value the value of the property.
-     * @return this PulsarSourceBuilder.
+     * @return this RocketMQSourceBuilder.
      */
     public <T> RocketMQSourceBuilder<OUT> setConfig(ConfigOption<T> key, T value) {
         configBuilder.set(key, value);
@@ -165,11 +167,11 @@ public class RocketMQSourceBuilder<OUT> {
     }
 
     /**
-     * Set arbitrary properties for the PulsarSource and Pulsar Consumer. The valid keys can be
-     * found in {@link PulsarSourceOptions} and {@link PulsarOptions}.
+     * Set arbitrary properties for the RocketMQ source.
+     * The valid keys can be found in {@link RocketMQSourceOptions}.
      *
-     * @param config the config to set for the PulsarSource.
-     * @return this PulsarSourceBuilder.
+     * @param config the config to set for the RocketMQSourceBuilder.
+     * @return this RocketMQSourceBuilder.
      */
     public RocketMQSourceBuilder<OUT> setConfig(Configuration config) {
         configBuilder.set(config);
@@ -177,13 +179,11 @@ public class RocketMQSourceBuilder<OUT> {
     }
 
     /**
-     * Set arbitrary properties for the PulsarSource and Pulsar Consumer. The valid keys can be
-     * found in {@link PulsarSourceOptions} and {@link PulsarOptions}.
+     * Set arbitrary properties for the RocketMQ source.
+     * This method is mainly used for future flink SQL binding.
      *
-     * <p>This method is mainly used for future flink SQL binding.
-     *
-     * @param properties the config properties to set for the PulsarSource.
-     * @return this PulsarSourceBuilder.
+     * @param properties the config properties to set for the RocketMQSource.
+     * @return this RocketMQSourceBuilder.
      */
     public RocketMQSourceBuilder<OUT> setProperties(Properties properties) {
         configBuilder.set(properties);
@@ -193,21 +193,32 @@ public class RocketMQSourceBuilder<OUT> {
     /**
      * Build the {@link RocketMQSource}.
      *
-     * @return a KafkaSource with the settings made for this builder.
+     * @return a RocketMQSource with the settings made for this builder.
      */
     public RocketMQSource<OUT> build() {
-        // sanityCheck();
-        // parseAndSetRequiredProperties();
-        // return new RocketMQSource<>(
-        //        startingMessageQueueOffsets,
-        //        stoppingMessageQueueOffsets,
-        //        boundedness,
-        //        deserializationSchema,
-        //        props);
-        return null;
+        sanityCheck();
+        parseAndSetRequiredProperties();
+
+        SourceConfiguration sourceConfiguration =
+                configBuilder.build(SOURCE_CONFIG_VALIDATOR, SourceConfiguration::new);
+
+        return new RocketMQSource<>(
+                consumer,
+                startingMessageQueueOffsets,
+                stoppingMessageQueueOffsets,
+                boundedness,
+                deserializationSchema,
+                sourceConfiguration);
     }
 
     // ------------- private helpers  --------------
+    private void sanityCheck() {
+
+    }
+
+    private void parseAndSetRequiredProperties() {
+
+    }
 
     /**
      * Helper method for java compiler recognize the generic type.

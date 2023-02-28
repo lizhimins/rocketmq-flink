@@ -28,6 +28,16 @@ import java.io.IOException;
 @PublicEvolving
 public class RocketMQSink<IN> implements TwoPhaseCommittingSink<IN, RocketMQCommittable> {
 
+    /**
+     * Create a {@link RocketMQSinkBuilder} to construct a new {@link RocketMQSink}.
+     *
+     * @param <IN> type of incoming records
+     * @return {@link RocketMQSinkBuilder}
+     */
+    public static <IN> RocketMQSinkBuilder<IN> builder() {
+        return new RocketMQSinkBuilder<>();
+    }
+
     @Override
     public PrecommittingSinkWriter<IN, RocketMQCommittable> createWriter(InitContext context)
             throws IOException {

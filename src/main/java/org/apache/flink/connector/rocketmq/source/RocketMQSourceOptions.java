@@ -18,15 +18,23 @@
 
 package org.apache.flink.connector.rocketmq.source;
 
+import org.apache.flink.connector.rocketmq.common.config.RocketMQConfigValidator;
 import org.apache.rocketmq.client.consumer.rebalance.AllocateMessageQueueAveragely;
 
 import org.apache.flink.configuration.ConfigOption;
 import org.apache.flink.configuration.ConfigOptions;
 import org.apache.flink.connector.rocketmq.common.config.RocketMQOptions;
 import org.apache.flink.connector.rocketmq.legacy.RocketMQConfig;
+import org.apache.rocketmq.common.protocol.heartbeat.MessageModel;
 
 /** Includes config options of RocketMQ connector type. */
 public class RocketMQSourceOptions extends RocketMQOptions {
+
+    public static final RocketMQConfigValidator SOURCE_CONFIG_VALIDATOR =
+            RocketMQConfigValidator.builder()
+                    .requiredOption(RocketMQSourceOptions.ENDPOINTS)
+                    .requiredOption(RocketMQSourceOptions.CONSUMER_GROUP)
+                    .build();
 
     // rocketmq client API config prefix.
     public static final String CONSUMER_PREFIX = "rocketmq.consumer.";
@@ -47,12 +55,9 @@ public class RocketMQSourceOptions extends RocketMQOptions {
     public static final ConfigOption<Boolean> OPTIONAL_USE_NEW_API =
             ConfigOptions.key(CONSUMER_PREFIX + "useNewApi").booleanType().defaultValue(true);
 
-    /**
-     * for message filter, rocketmq only support single filter option, so we can choose either tag
-     * or sql
-     */
     public static final ConfigOption<String> OPTIONAL_TAG =
-            ConfigOptions.key(CONSUMER_PREFIX + "tag").stringType().defaultValue("*");
+            ConfigOptions.key(CONSUMER_PREFIX + "tag").stringType().defaultValue("*")
+                    .withDescription("for message filter, rocketmq only support single filter option");
 
     public static final ConfigOption<String> OPTIONAL_SQL =
             ConfigOptions.key(CONSUMER_PREFIX + "sql").stringType().noDefaultValue();
@@ -86,10 +91,10 @@ public class RocketMQSourceOptions extends RocketMQOptions {
             ConfigOptions.key(CONSUMER_PREFIX + "columnErrorDebug").booleanType().defaultValue(true);
 
     /** pull config */
-    public static final ConfigOption<Long> MESSAGE_MODEL =
+    public static final ConfigOption<MessageModel> MESSAGE_MODEL =
             ConfigOptions.key(CONSUMER_PREFIX + "messageModel")
-                    .longType()
-                    .defaultValue(1000L)
+                    .enumType(MessageModel.class)
+                    .defaultValue(MessageModel.CLUSTERING)
                     .withDescription("The consumption mode");
 
     public static final ConfigOption<String> ALLOCATE_MESSAGE_QUEUE_STRATEGY =

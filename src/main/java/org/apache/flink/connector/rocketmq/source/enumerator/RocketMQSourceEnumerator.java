@@ -25,6 +25,7 @@ import org.apache.flink.api.connector.source.SplitEnumeratorContext;
 import org.apache.flink.api.connector.source.SplitsAssignment;
 import org.apache.flink.api.java.tuple.Tuple3;
 import org.apache.flink.connector.rocketmq.legacy.common.util.RetryUtil;
+import org.apache.flink.connector.rocketmq.source.InnerConsumer;
 import org.apache.flink.connector.rocketmq.source.config.SourceConfiguration;
 import org.apache.flink.connector.rocketmq.source.enumerator.initializer.MessageQueueOffsets;
 import org.apache.flink.connector.rocketmq.source.split.RocketMQPartitionSplit;
@@ -62,7 +63,7 @@ public class RocketMQSourceEnumerator
     private static final Logger LOG = LoggerFactory.getLogger(RocketMQSourceEnumerator.class);
 
     // Lazily instantiated or mutable fields.
-    private final DefaultLitePullConsumer consumer;
+    private final InnerConsumer consumer;
 
     // Users can specify the starting / stopping offset initializer.
     private final MessageQueueOffsets startingMessageQueueOffsets;
@@ -93,7 +94,7 @@ public class RocketMQSourceEnumerator
     private Map<Integer, Set<RocketMQPartitionSplit>> pendingPartitionSplitAssignment;
 
     public RocketMQSourceEnumerator(
-            DefaultLitePullConsumer consumer,
+            InnerConsumer consumer,
             MessageQueueOffsets startingMessageQueueOffsets,
             MessageQueueOffsets stoppingMessageQueueOffsets,
             SourceConfiguration sourceConfiguration,
@@ -104,7 +105,7 @@ public class RocketMQSourceEnumerator
     }
 
     public RocketMQSourceEnumerator(
-            DefaultLitePullConsumer consumer,
+            InnerConsumer consumer,
             MessageQueueOffsets startingMessageQueueOffsets,
             MessageQueueOffsets stoppingMessageQueueOffsets,
             SourceConfiguration sourceConfiguration,
@@ -239,7 +240,11 @@ public class RocketMQSourceEnumerator
     @Override
     public void close() {
         if (consumer != null) {
-            consumer.shutdown();
+            try {
+                consumer.close();
+            } catch (Exception e) {
+                LOG.error("asd");
+            }
         }
     }
 

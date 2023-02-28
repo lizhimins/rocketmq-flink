@@ -21,12 +21,10 @@ import org.apache.flink.api.common.eventtime.Watermark;
 import org.apache.flink.api.connector.sink2.TwoPhaseCommittingSink;
 import org.apache.flink.connector.base.DeliveryGuarantee;
 import org.apache.flink.connector.rocketmq.sink.committer.RocketMQCommittable;
-import org.apache.flink.connector.rocketmq.sink.producer.FlinkRocketMQInternalProducer;
 import org.apache.flink.connector.rocketmq.sink.writer.context.RocketMQSinkContext;
 import org.apache.flink.connector.rocketmq.sink.writer.serializer.RocketMQSerializationSchema;
-
 import org.apache.flink.shaded.guava30.com.google.common.io.Closer;
-
+import org.apache.rocketmq.client.producer.MQProducer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -63,7 +61,7 @@ public class RocketMQWriter<IN>
     // Number of outgoing bytes at the latest metric sync
     // private long latestOutgoingByteTotal;
     // private Metric byteOutMetric;
-    private FlinkRocketMQInternalProducer currentProducer;
+    private MQProducer currentProducer;
 
     // private final RocketMQWriterState kafkaWriterState;
 
@@ -71,7 +69,7 @@ public class RocketMQWriter<IN>
     // private final Deque<FlinkKafkaInternalProducer<byte[], byte[]>> producerPool =
     //        new ArrayDeque<>();
     private final Closer closer = Closer.create();
-    private long lastCheckpointId;
+    private long lastCheckpointId = 0L;
 
     private boolean closed = false;
     private long lastSync = System.currentTimeMillis();
@@ -80,7 +78,7 @@ public class RocketMQWriter<IN>
             DeliveryGuarantee deliveryGuarantee,
             RocketMQSerializationSchema<IN> serializationSchema,
             RocketMQSinkContext rocketmqSinkContext,
-            FlinkRocketMQInternalProducer currentProducer) {
+            MQProducer currentProducer) {
         this.deliveryGuarantee = deliveryGuarantee;
         this.serializationSchema = serializationSchema;
         this.rocketmqSinkContext = rocketmqSinkContext;
@@ -95,10 +93,12 @@ public class RocketMQWriter<IN>
     }
 
     @Override
-    public void write(IN element, Context context) throws IOException, InterruptedException {}
+    public void write(IN element, Context context) throws IOException, InterruptedException {
+    }
 
     @Override
-    public void flush(boolean endOfInput) throws IOException, InterruptedException {}
+    public void flush(boolean endOfInput) throws IOException, InterruptedException {
+    }
 
     @Override
     public void writeWatermark(Watermark watermark) throws IOException, InterruptedException {
@@ -106,5 +106,6 @@ public class RocketMQWriter<IN>
     }
 
     @Override
-    public void close() throws Exception {}
+    public void close() throws Exception {
+    }
 }

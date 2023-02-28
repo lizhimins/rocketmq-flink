@@ -63,7 +63,7 @@ public class RocketMQSource<OUT>
     private static final Logger log = LoggerFactory.getLogger(RocketMQSource.class);
 
     // Users can choose only one of the following ways to specify the topics to consume from.
-    private final DefaultLitePullConsumer consumer;
+    private final InnerConsumer consumer;
 
     // Users can specify the starting / stopping offset initializer.
     private final MessageQueueOffsets startingMessageQueueOffsets;
@@ -79,7 +79,7 @@ public class RocketMQSource<OUT>
     private final RocketMQDeserializationSchema<OUT> deserializationSchema;
 
     public RocketMQSource(
-            DefaultLitePullConsumer consumer,
+            InnerConsumer consumer,
             MessageQueueOffsets startingMessageQueueOffsets,
             MessageQueueOffsets stoppingMessageQueueOffsets,
             Boundedness boundedness,

@@ -43,7 +43,7 @@ public class RocketMQOptions {
     public static final String CLIENT_CONFIG_PREFIX = "rocketmq.client.";
 
     public static final ConfigOption<Boolean> GLOBAL_DEBUG_MODE =
-            ConfigOptions.key("debug").booleanType().defaultValue(false);
+            ConfigOptions.key(CLIENT_CONFIG_PREFIX + "debug").booleanType().defaultValue(false);
 
     /**
      * rocketmq v4 endpoints means nameserver address rocketmq v5 endpoints means proxy server
@@ -86,7 +86,7 @@ public class RocketMQOptions {
                             "Time interval for polling route information from nameserver or proxy");
 
     public static final ConfigOption<Long> HEARTBEAT_INTERVAL =
-            ConfigOptions.key(CLIENT_CONFIG_PREFIX + "heartbeatInterval")
+            ConfigOptions.key(CLIENT_CONFIG_PREFIX + "heartbeat.interval.ms")
                     .longType()
                     .defaultValue(30000L)
                     .withDescription(
@@ -99,19 +99,19 @@ public class RocketMQOptions {
             ConfigOptions.key(CLIENT_CONFIG_PREFIX + "unitName").stringType().noDefaultValue();
 
     public static final ConfigOption<Boolean> VIP_CHANNEL_ENABLED =
-            ConfigOptions.key(CLIENT_CONFIG_PREFIX + "vipChannelEnabled")
+            ConfigOptions.key(CLIENT_CONFIG_PREFIX + "channel.vip.enable")
                     .booleanType()
                     .defaultValue(false)
                     .withDescription("Whether to enable vip netty channel for sending messages");
 
     public static final ConfigOption<Boolean> USE_TLS =
-            ConfigOptions.key(CLIENT_CONFIG_PREFIX + "useTLS")
+            ConfigOptions.key(CLIENT_CONFIG_PREFIX + "tls.enable")
                     .booleanType()
                     .defaultValue(false)
                     .withDescription("Whether to use TLS transport.");
 
     public static final ConfigOption<Long> MQ_CLIENT_API_TIMEOUT =
-            ConfigOptions.key(CLIENT_CONFIG_PREFIX + "network.timeout")
+            ConfigOptions.key(CLIENT_CONFIG_PREFIX + "network.timeout.ms")
                     .longType()
                     .defaultValue(30000L)
                     .withDescription("RocketMQ client api timeout setting");
@@ -125,23 +125,23 @@ public class RocketMQOptions {
     public static final ConfigOption<String> OPTIONAL_TIME_ZONE =
             ConfigOptions.key(CLIENT_CONFIG_PREFIX + "timeZone").stringType().noDefaultValue();
 
-    // for message content
+    // for message payload
     public static final ConfigOption<String> OPTIONAL_ENCODING =
-            ConfigOptions.key(CLIENT_CONFIG_PREFIX + "encoding").stringType().defaultValue("UTF-8");
+            ConfigOptions.key(CLIENT_CONFIG_PREFIX + "message.encoding").stringType().defaultValue("UTF-8");
 
     public static final ConfigOption<String> OPTIONAL_FIELD_DELIMITER =
-            ConfigOptions.key(CLIENT_CONFIG_PREFIX + "fieldDelimiter").stringType().defaultValue("\u0001");
+            ConfigOptions.key(CLIENT_CONFIG_PREFIX + "message.field.delimiter").stringType().defaultValue("\u0001");
 
     public static final ConfigOption<String> OPTIONAL_LINE_DELIMITER =
-            ConfigOptions.key(CLIENT_CONFIG_PREFIX + "lineDelimiter").stringType().defaultValue("\n");
+            ConfigOptions.key(CLIENT_CONFIG_PREFIX + "message.line.delimiter").stringType().defaultValue("\n");
 
     public static final ConfigOption<String> OPTIONAL_LENGTH_CHECK =
-            ConfigOptions.key(CLIENT_CONFIG_PREFIX + "lengthCheck").stringType().defaultValue("NONE");
+            ConfigOptions.key(CLIENT_CONFIG_PREFIX + "message.length.check").stringType().defaultValue("NONE");
 
     // the config of session credential
     public static final ConfigOption<String> OPTIONAL_ACCESS_KEY =
             ConfigOptions.key(CLIENT_CONFIG_PREFIX + "accessKey").stringType().noDefaultValue();
 
     public static final ConfigOption<String> OPTIONAL_SECRET_KEY =
-            ConfigOptions.key(CLIENT_CONFIG_PREFIX + "secretKey").stringType().noDefaultValue();
+            ConfigOptions.key(CLIENT_CONFIG_PREFIX + "accessKey").stringType().noDefaultValue();
 }

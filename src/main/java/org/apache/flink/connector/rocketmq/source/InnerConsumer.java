@@ -19,11 +19,15 @@ package org.apache.flink.connector.rocketmq.source;
 
 import org.apache.flink.connector.rocketmq.source.reader.MessageView;
 import org.apache.rocketmq.common.message.MessageQueue;
+import org.apache.rocketmq.common.protocol.route.TopicRouteData;
 
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 public interface InnerConsumer extends AutoCloseable {
+
+    CompletableFuture<Map<String /*topic*/, TopicRouteData>> getTopicRoute(List<String> topicList);
 
     CompletableFuture<Long /*offset*/> seekCommittedOffset(MessageQueue messageQueue, String consumerGroup);
 

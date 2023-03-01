@@ -20,6 +20,7 @@ package org.apache.flink.connector.rocketmq.source.enumerator;
 
 import org.apache.flink.connector.rocketmq.source.split.RocketMQPartitionSplit;
 import org.apache.flink.core.io.SimpleVersionedSerializer;
+import org.apache.rocketmq.common.message.MessageQueue;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -27,6 +28,7 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -73,7 +75,7 @@ public class RocketMQSourceEnumStateSerializer
                         version, getVersion()));
     }
 
-    private static Set<RocketMQPartitionSplit> deserializeTopicPartitions(byte[] serializedTopicPartitions)
+    private static Map<MessageQueue, Long /*offset*/> deserializeTopicPartitions(byte[] serializedTopicPartitions)
             throws IOException {
         try (ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(serializedTopicPartitions);
              DataInputStream in = new DataInputStream(byteArrayInputStream)) {
@@ -86,6 +88,7 @@ public class RocketMQSourceEnumStateSerializer
                 final int partitionId = in.readInt();
                 final long startingOffset = in.readLong();
                 final long stoppingOffset = in.readLong();
+                final long currentOffset = in.readLong();
                 topicPartitions.add(new RocketMQPartitionSplit(
                         topicName, brokerName, partitionId, startingOffset, stoppingOffset));
             }

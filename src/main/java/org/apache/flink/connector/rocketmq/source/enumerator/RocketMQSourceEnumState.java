@@ -20,6 +20,7 @@ package org.apache.flink.connector.rocketmq.source.enumerator;
 
 import org.apache.flink.annotation.Internal;
 import org.apache.flink.connector.rocketmq.source.split.RocketMQPartitionSplit;
+import org.apache.rocketmq.common.message.MessageQueue;
 
 import java.util.List;
 import java.util.Map;
@@ -29,13 +30,13 @@ import java.util.Set;
 @Internal
 public class RocketMQSourceEnumState {
 
-    private final Set<RocketMQPartitionSplit> assignedPartitions;
+    private final Map<MessageQueue, Long /*offset*/> currentOffsetMap;
 
-    public RocketMQSourceEnumState(Set<RocketMQPartitionSplit> assignedPartitions) {
-        this.assignedPartitions = assignedPartitions;
+    public RocketMQSourceEnumState(Map<MessageQueue, Long /*offset*/> currentOffsetMap) {
+        this.currentOffsetMap = currentOffsetMap;
     }
 
-    public Set<RocketMQPartitionSplit> getAssignedPartitions() {
-        return assignedPartitions;
+    public Map<MessageQueue, Long> getCurrentOffsetMap() {
+        return currentOffsetMap;
     }
 }

@@ -53,7 +53,7 @@ public class RocketMQSourceOptions extends RocketMQOptions {
                             "The name of the consumer group, used to identify a type of consumer");
 
     public static final ConfigOption<Boolean> OPTIONAL_USE_NEW_API =
-            ConfigOptions.key(CONSUMER_PREFIX + "useNewApi").booleanType().defaultValue(true);
+            ConfigOptions.key(CONSUMER_PREFIX + "api.new.enable").booleanType().defaultValue(true);
 
     public static final ConfigOption<String> OPTIONAL_TAG =
             ConfigOptions.key(CONSUMER_PREFIX + "tag").stringType().defaultValue("*")
@@ -64,27 +64,27 @@ public class RocketMQSourceOptions extends RocketMQOptions {
 
     /** for initialization consume offset */
     public static final ConfigOption<Long> OPTIONAL_START_MESSAGE_OFFSET =
-            ConfigOptions.key(CONSUMER_PREFIX + "startConsumeOffset")
+            ConfigOptions.key(CONSUMER_PREFIX + "startup.offset.specific")
                     .longType()
                     .defaultValue(RocketMQConfig.DEFAULT_START_MESSAGE_OFFSET);
 
     public static final ConfigOption<String> OPTIONAL_SCAN_STARTUP_MODE =
-            ConfigOptions.key(CONSUMER_PREFIX + "scanStartupMode").stringType().defaultValue("latest");
+            ConfigOptions.key(CONSUMER_PREFIX + "scan.startup.mode").stringType().defaultValue("latest");
 
     public static final ConfigOption<Long> OPTIONAL_OFFSET_FROM_TIMESTAMP =
-            ConfigOptions.key(CONSUMER_PREFIX + "startConsumeOffset").longType().noDefaultValue();
+            ConfigOptions.key(CONSUMER_PREFIX + "startup.offset.timestamp").longType().noDefaultValue();
 
     public static final ConfigOption<String> OPTIONAL_START_TIME =
-            ConfigOptions.key(CONSUMER_PREFIX + "startConsumeTime").stringType().noDefaultValue();
+            ConfigOptions.key(CONSUMER_PREFIX + "startup.offset.").stringType().noDefaultValue();
 
     public static final ConfigOption<Long> OPTIONAL_START_TIME_MILLS =
             ConfigOptions.key(CONSUMER_PREFIX + "startConsumeTimeMs").longType().defaultValue(-1L);
 
     public static final ConfigOption<String> OPTIONAL_STOP_TIME =
-            ConfigOptions.key(CONSUMER_PREFIX + "stopConsumeTime").stringType().noDefaultValue();
+            ConfigOptions.key(CONSUMER_PREFIX + "stop.ConsumeTime").stringType().noDefaultValue();
 
     public static final ConfigOption<String> OPTIONAL_STOP_TIME_MILLS =
-            ConfigOptions.key(CONSUMER_PREFIX + "stopConsumeTimeMs").stringType().noDefaultValue();
+            ConfigOptions.key(CONSUMER_PREFIX + "stop.ConsumeTimeMs").stringType().noDefaultValue();
 
     /** for message content check and split */
     public static final ConfigOption<Boolean> OPTIONAL_COLUMN_ERROR_DEBUG =
@@ -92,13 +92,13 @@ public class RocketMQSourceOptions extends RocketMQOptions {
 
     /** pull config */
     public static final ConfigOption<MessageModel> MESSAGE_MODEL =
-            ConfigOptions.key(CONSUMER_PREFIX + "messageModel")
+            ConfigOptions.key(CONSUMER_PREFIX + "model")
                     .enumType(MessageModel.class)
                     .defaultValue(MessageModel.CLUSTERING)
                     .withDescription("The consumption mode");
 
     public static final ConfigOption<String> ALLOCATE_MESSAGE_QUEUE_STRATEGY =
-            ConfigOptions.key(CONSUMER_PREFIX + "allocateStrategy")
+            ConfigOptions.key(CONSUMER_PREFIX + "allocate.strategy")
                     .stringType()
                     .defaultValue(new AllocateMessageQueueAveragely().getName())
                     .withDescription("The load balancing strategy algorithm");
@@ -174,7 +174,7 @@ public class RocketMQSourceOptions extends RocketMQOptions {
                     .withDescription("The setting for automatic commit of offset");
 
     public static final ConfigOption<Long> AUTO_COMMIT_INTERVAL_MILLIS =
-            ConfigOptions.key(CONSUMER_PREFIX + "autoCommitIntervalMillis")
+            ConfigOptions.key(CONSUMER_PREFIX + "autoCommit.interval.ms")
                     .longType()
                     .defaultValue(5 * 1000L)
                     .withDescription(
@@ -182,13 +182,13 @@ public class RocketMQSourceOptions extends RocketMQOptions {
 
     /** for message trace, suggest not enable when heavy traffic */
     public static final ConfigOption<Boolean> ENABLE_MESSAGE_TRACE =
-            ConfigOptions.key(CONSUMER_PREFIX + "enableMsgTrace")
+            ConfigOptions.key(CONSUMER_PREFIX + "trace.enable")
                     .booleanType()
                     .defaultValue(true)
                     .withDescription("The flag for message tracing");
 
     public static final ConfigOption<String> CUSTOMIZED_TRACE_TOPIC =
-            ConfigOptions.key(CONSUMER_PREFIX + "customizedTraceTopic")
+            ConfigOptions.key(CONSUMER_PREFIX + "trace.topic")
                     .stringType()
                     .noDefaultValue()
                     .withDescription("The name of the topic for message tracing");

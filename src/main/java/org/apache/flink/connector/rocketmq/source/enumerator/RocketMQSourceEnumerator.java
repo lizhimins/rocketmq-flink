@@ -18,29 +18,28 @@
 
 package org.apache.flink.connector.rocketmq.source.enumerator;
 
+import com.google.common.collect.Sets;
 import org.apache.flink.annotation.Internal;
 import org.apache.flink.annotation.VisibleForTesting;
 import org.apache.flink.api.connector.source.SplitEnumerator;
 import org.apache.flink.api.connector.source.SplitEnumeratorContext;
 import org.apache.flink.api.connector.source.SplitsAssignment;
-import org.apache.flink.api.java.tuple.Tuple3;
-import org.apache.flink.connector.rocketmq.legacy.common.util.RetryUtil;
 import org.apache.flink.connector.rocketmq.source.InnerConsumer;
+import org.apache.flink.connector.rocketmq.source.InnerConsumerImpl;
 import org.apache.flink.connector.rocketmq.source.config.SourceConfiguration;
+import org.apache.flink.connector.rocketmq.source.enumerator.allocate.AllocateMergeStrategy;
+import org.apache.flink.connector.rocketmq.source.enumerator.allocate.AllocateStrategy;
 import org.apache.flink.connector.rocketmq.source.enumerator.initializer.MessageQueueOffsets;
 import org.apache.flink.connector.rocketmq.source.split.RocketMQPartitionSplit;
-import org.apache.rocketmq.client.consumer.DefaultLitePullConsumer;
-import org.apache.rocketmq.client.consumer.store.OffsetStore;
-import org.apache.rocketmq.client.consumer.store.ReadOffsetType;
-import org.apache.rocketmq.client.consumer.store.RemoteBrokerOffsetStore;
+import org.apache.flink.util.FlinkRuntimeException;
 import org.apache.rocketmq.client.exception.MQClientException;
+import org.apache.rocketmq.client.impl.factory.MQClientInstance;
 import org.apache.rocketmq.common.message.MessageQueue;
-import org.apache.rocketmq.tools.admin.DefaultMQAdminExt;
+import org.apache.rocketmq.common.protocol.route.TopicRouteData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -49,9 +48,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.Callable;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 /**
  * The enumerator class for RocketMQ source.
@@ -63,7 +60,7 @@ public class RocketMQSourceEnumerator
     private static final Logger LOG = LoggerFactory.getLogger(RocketMQSourceEnumerator.class);
 
     // Lazily instantiated or mutable fields.
-    private final InnerConsumer consumer;
+    private InnerConsumer consumer;
 
     // Users can specify the starting / stopping offset initializer.
     private final MessageQueueOffsets startingMessageQueueOffsets;
@@ -73,24 +70,16 @@ public class RocketMQSourceEnumerator
 
     private final SplitEnumeratorContext<RocketMQPartitionSplit> context;
 
-    private final Set<RocketMQPartitionSplit> assignedPartitions;
+    private final AllocateStrategy allocateStrategy;
 
     // The internal states of the enumerator.
-    /**
-     * This set is only accessed by the partition discovery callable in the callAsync() method, i.e
-     * worker thread.
-     */
-    private Set<Tuple3<String, String, Integer>> discoveredPartitions;
+    // his set is only accessed by the partition discovery callable in the callAsync() method.
+    private final Set<MessageQueue> discoveredPartitions;
 
-    /**
-     * The current assignment by reader id. Only accessed by the coordinator thread.
-     */
-    private Map<Integer, List<RocketMQPartitionSplit>> readerIdToSplitAssignments;
+    // The current assignment by reader id. Only accessed by the coordinator thread.
+    private Map<Integer, Set<RocketMQPartitionSplit>> currentPartitionSplitAssignment;
 
-    /**
-     * The discovered and initialized partition splits that are waiting for owner reader to be
-     * ready.
-     */
+    // The discovered and initialized partition splits that are waiting for owner reader to be ready.
     private Map<Integer, Set<RocketMQPartitionSplit>> pendingPartitionSplitAssignment;
 
     public RocketMQSourceEnumerator(
@@ -110,69 +99,17 @@ public class RocketMQSourceEnumerator
             MessageQueueOffsets stoppingMessageQueueOffsets,
             SourceConfiguration sourceConfiguration,
             SplitEnumeratorContext<RocketMQPartitionSplit> context,
-            Set<RocketMQPartitionSplit> assignedPartitions) {
+            Set<MessageQueue> assignedPartitions) {
 
         this.consumer = consumer;
         this.startingMessageQueueOffsets = startingMessageQueueOffsets;
         this.stoppingMessageQueueOffsets = stoppingMessageQueueOffsets;
         this.sourceConfiguration = sourceConfiguration;
         this.context = context;
-        this.assignedPartitions = assignedPartitions;
+        this.discoveredPartitions = Sets.newHashSet(assignedPartitions);
+        this.allocateStrategy = new AllocateMergeStrategy();
     }
 
-    // public RocketMQSourceEnumerator(
-    //        String topic,
-    //        String consumerGroup,
-    //        String nameServerAddress,
-    //        String accessKey,
-    //        String secretKey,
-    //        long stopInMs,
-    //        long startOffset,
-    //        long partitionDiscoveryIntervalMs,
-    //        Boundedness boundedness,
-    //        SplitEnumeratorContext<RocketMQPartitionSplit> context,
-    //        String consumerOffsetMode,
-    //        long consumerOffsetTimestamp) {
-    //    this(
-    //            topic,
-    //            consumerGroup,
-    //            nameServerAddress,
-    //            accessKey,
-    //            secretKey,
-    //            stopInMs,
-    //            startOffset,
-    //            partitionDiscoveryIntervalMs,
-    //            boundedness,
-    //            context,
-    //            new HashMap<>(),
-    //            consumerOffsetMode,
-    //            consumerOffsetTimestamp);
-    // }
-    //
-    // public RocketMQSourceEnumerator(
-    //        String topic,
-    //        String consumerGroup,
-    //        String nameServerAddress,
-    //        String accessKey,
-    //        String secretKey,
-    //        long stopInMs,
-    //        long startOffset,
-    //        long partitionDiscoveryIntervalMs,
-    //        Boundedness boundedness,
-    //        SplitEnumeratorContext<RocketMQPartitionSplit> context,
-    //        Map<Integer, List<RocketMQPartitionSplit>> currentSplitsAssignments,
-    //        String consumerOffsetMode,
-    //        long consumerOffsetTimestamp) {
-    //    this.topic = topic;
-    //    this.consumerGroup = consumerGroup;
-    //    this.nameServerAddress = nameServerAddress;
-    //    this.accessKey = accessKey;
-    //    this.secretKey = secretKey;
-    //    this.stopInMs = stopInMs;
-    //    this.startOffset = startOffset;
-    //    this.partitionDiscoveryIntervalMs = partitionDiscoveryIntervalMs;
-    //    this.boundedness = boundedness;
-    //    this.context = context;
     //
     //    this.discoveredPartitions = new HashSet<>();
     //    this.readerIdToSplitAssignments = new HashMap<>(currentSplitsAssignments);
@@ -192,28 +129,38 @@ public class RocketMQSourceEnumerator
 
     @Override
     public void start() {
-        initialRocketMQConsumer();
-        // LOG.info(
-        //        "Starting the RocketMQSourceEnumerator for consumer group {} "
-        //                + "with partition discovery interval of {} ms.",
-        //        consumerGroup,
-        //        partitionDiscoveryIntervalMs);
-        // context.callAsync(
-        //        this::discoverAndInitializePartitionSplit,
-        //        this::handlePartitionSplitChanges,
-        //        0,
-        //        partitionDiscoveryIntervalMs);
+        consumer = new InnerConsumerImpl(sourceConfiguration);
+        String consumerGroupId = sourceConfiguration.getConsumerGroup();
+        long partitionDiscoveryIntervalMs = sourceConfiguration.getPartitionDiscoveryIntervalMs();
+        if (sourceConfiguration.isEnablePartitionDiscovery()) {
+            LOG.info(
+                    "Starting the RocketMQSourceEnumerator for consumer group {} "
+                            + "with partition discovery interval of {} ms.",
+                    consumerGroupId,
+                    partitionDiscoveryIntervalMs);
+            context.callAsync(
+                    this::initializeAllPartitionSplit,
+                    this::handleSplitChanges,
+                    0,
+                    partitionDiscoveryIntervalMs);
+        } else {
+            LOG.info(
+                    "Starting the KafkaSourceEnumerator for consumer group {} "
+                            + "without periodic partition discovery.",
+                    consumerGroupId);
+            context.callAsync(this::initializeAllPartitionSplit, this::handleSplitChanges);
+        }
     }
 
     @Override
     public void handleSplitRequest(int subtaskId, @Nullable String requesterHostname) {
-        // the RocketMQ source pushes splits eagerly, rather than act upon split requests
+        // the rocketmq source pushes splits eagerly, rather than act upon split requests
     }
 
     @Override
     public void addSplitsBack(List<RocketMQPartitionSplit> splits, int subtaskId) {
-        addPartitionSplitChangeToPendingAssignments(splits);
-        assignPendingPartitionSplits();
+        //handleSplitChangeLocal(splits);
+        handleSplitChangeRemote();
     }
 
     @Override
@@ -250,74 +197,53 @@ public class RocketMQSourceEnumerator
 
     // ----------------- private methods -------------------
 
-    private Set<RocketMQPartitionSplit> discoverAndInitializePartitionSplit()
-            throws MQClientException {
-        Set<Tuple3<String, String, Integer>> newPartitions = new HashSet<>();
-        Set<Tuple3<String, String, Integer>> removedPartitions =
-                new HashSet<>(Collections.unmodifiableSet(discoveredPartitions));
-
-        // Collection<MessageQueue> messageQueues = consumer.fetchMessageQueues(topic);
-        Set<RocketMQPartitionSplit> result = new HashSet<>();
-        // for (MessageQueue messageQueue : messageQueues) {
-        //    Tuple3<String, String, Integer> topicPartition =
-        //            new Tuple3<>(
-        //                    messageQueue.getTopic(),
-        //                    messageQueue.getBrokerName(),
-        //                    messageQueue.getQueueId());
-        //    if (!removedPartitions.remove(topicPartition)) {
-        //        newPartitions.add(topicPartition);
-        //        result.add(
-        //                new RocketMQPartitionSplit(
-        //                        topicPartition.f0,
-        //                        topicPartition.f1,
-        //                        topicPartition.f2,
-        //                        getOffsetByMessageQueue(messageQueue),
-        //                        stopInMs));
-        //    }
-        // }
-        // discoveredPartitions.addAll(Collections.unmodifiableSet(newPartitions));
-        return result;
+    private Set<MessageQueue> initializeAllPartitionSplit() {
+        try {
+            Set<MessageQueue> existQueueSet = Collections.unmodifiableSet(discoveredPartitions);
+            Map<String, TopicRouteData> topicRouteDataMap =
+                    consumer.getTopicRoute(sourceConfiguration.getTopicList()).get();
+            Set<MessageQueue> currentQueueSet = topicRouteDataMap.entrySet().stream()
+                    .flatMap(entry -> MQClientInstance.topicRouteData2TopicSubscribeInfo(
+                                    entry.getKey(), entry.getValue()).stream())
+                    .collect(Collectors.toSet());
+            currentQueueSet.removeAll(existQueueSet);
+            discoveredPartitions.addAll(currentQueueSet);
+        } catch (Exception e) {
+            LOG.error("Initialize partition split failed", e);
+        }
+        return discoveredPartitions;
     }
 
     // This method should only be invoked in the coordinator executor thread.
-    private void handlePartitionSplitChanges(
-            Set<RocketMQPartitionSplit> partitionSplits, Throwable t) {
-        // if (t != null) {
-        //    throw new FlinkRuntimeException("Failed to handle partition splits change due to ",
-        // t);
-        // }
-        // if (partitionDiscoveryIntervalMs < 0) {
-        //    LOG.debug("");
-        //    noMoreNewPartitionSplits = true;
-        // }
-        addPartitionSplitChangeToPendingAssignments(partitionSplits);
-        assignPendingPartitionSplits();
+    private void handleSplitChanges(Set<MessageQueue> partitionSplits, Throwable t) {
+        if (t != null) {
+            throw new FlinkRuntimeException("Failed to handle partition splits change due to ", t);
+        }
+        if (sourceConfiguration.isEnablePartitionDiscovery()) {
+            LOG.warn("Partition has changed, but not enable partition discovery");
+        }
+        handleSplitChangeLocal(partitionSplits);
+        handleSplitChangeRemote();
     }
 
     // This method should only be invoked in the coordinator executor thread.
-    private void addPartitionSplitChangeToPendingAssignments(
-            Collection<RocketMQPartitionSplit> newPartitionSplits) {
+    private void handleSplitChangeLocal(Collection<MessageQueue> newPartitionSplits) {
         int numReaders = context.currentParallelism();
-        for (RocketMQPartitionSplit split : newPartitionSplits) {
-            int ownerReader =
-                    getSplitOwner(
-                            split.getTopicName(),
-                            split.getBrokerName(),
-                            split.getPartitionId(),
-                            numReaders);
+        for (MessageQueue split : newPartitionSplits) {
+            int ownerReader = getSplitOwner(split, numReaders);
             pendingPartitionSplitAssignment
                     .computeIfAbsent(ownerReader, r -> new HashSet<>())
                     .add(split);
         }
-        // LOG.debug(
-        //        "Assigned {} to {} readers of consumer group {}.",
-        //        newPartitionSplits,
-        //        numReaders,
-        //        consumerGroup);
+        LOG.debug(
+                "Assigned {} to {} readers of consumer group {}.",
+                newPartitionSplits,
+                numReaders,
+                sourceConfiguration.getConsumerGroup());
     }
 
     // This method should only be invoked in the coordinator executor thread.
-    private void assignPendingPartitionSplits() {
+    private void handleSplitChangeRemote() {
         Map<Integer, List<RocketMQPartitionSplit>> incrementalAssignment = new HashMap<>();
         pendingPartitionSplitAssignment.forEach(
                 (ownerReader, pendingSplits) -> {
@@ -339,7 +265,7 @@ public class RocketMQSourceEnumerator
         incrementalAssignment.forEach(
                 (readerOwner, newPartitionSplits) -> {
                     // Update the split assignment.
-                    readerIdToSplitAssignments
+                    currentPartitionSplitAssignment
                             .computeIfAbsent(readerOwner, r -> new ArrayList<>())
                             .addAll(newPartitionSplits);
                     // Clear the pending splits for the reader owner.
@@ -387,31 +313,6 @@ public class RocketMQSourceEnumerator
         return 0L;
     }
 
-    private void initialRocketMQConsumer() {
-        // try {
-        //    if (!StringUtils.isNullOrWhitespaceOnly(accessKey)
-        //            && !StringUtils.isNullOrWhitespaceOnly(secretKey)) {
-        //        AclClientRPCHook aclClientRPCHook =
-        //                new AclClientRPCHook(new SessionCredentials(accessKey, secretKey));
-        //        consumer = new DefaultLitePullConsumer(consumerGroup, aclClientRPCHook);
-        //    } else {
-        //        consumer = new DefaultLitePullConsumer(consumerGroup);
-        //    }
-        //    consumer.setNamesrvAddr(nameServerAddress);
-        //    consumer.setInstanceName(
-        //            String.join(
-        //                    "||",
-        //                    ManagementFactory.getRuntimeMXBean().getName(),
-        //                    topic,
-        //                    consumerGroup,
-        //                    "" + System.nanoTime()));
-        //    consumer.start();
-        // } catch (MQClientException e) {
-        //    LOG.error("Failed to initial RocketMQ consumer.", e);
-        //    consumer.shutdown();
-        // }
-    }
-
     /**
      * Returns the index of the target subtask that a specific RocketMQ partition should be assigned
      * to.
@@ -426,111 +327,20 @@ public class RocketMQSourceEnumerator
      *       topic name).
      * </ul>
      *
-     * @param topic      the RocketMQ topic assigned.
-     * @param broker     the RocketMQ broker assigned.
-     * @param partition  the RocketMQ partition to assign.
+     * @param messageQueue the rocketmq message queue
      * @param numReaders the total number of readers.
      * @return the id of the subtask that owns the split.
      */
     @VisibleForTesting
-    static int getSplitOwner(String topic, String broker, int partition, int numReaders) {
+    static int getSplitOwner(MessageQueue messageQueue, int numReaders) {
+        String topic = messageQueue.getTopic();
+        String broker = messageQueue.getBrokerName();
+        int partition = messageQueue.getQueueId();
         int startIndex = (((topic + "-" + broker).hashCode() * 31) & 0x7FFFFFFF) % numReaders;
 
         // here, the assumption is that the id of RocketMQ partitions are always ascending
         // starting from 0, and therefore can be used directly as the offset clockwise from the
         // start index
         return (startIndex + partition) % numReaders;
-    }
-
-    /**
-     * The implementation for offsets retriever with a consumer and an admin client.
-     */
-    @VisibleForTesting
-    public static class PartitionOffsetsRetrieverImpl
-            implements MessageQueueOffsets.MessageQueueOffsetsRetriever, AutoCloseable {
-
-        private final DefaultLitePullConsumer consumer;
-        private final DefaultMQAdminExt adminExt;
-
-        public PartitionOffsetsRetrieverImpl(DefaultLitePullConsumer consumer, DefaultMQAdminExt adminExt) {
-            this.consumer = consumer;
-            this.adminExt = adminExt;
-        }
-
-        @Override
-        public void close() throws Exception {
-            this.adminExt.shutdown();
-        }
-
-        @Override
-        public Map<MessageQueue, Long> committedOffsets(Collection<MessageQueue> messageQueues) {
-            Map<MessageQueue, Long> offsetMap = new ConcurrentHashMap<>();
-
-            OffsetStore offsetStore = consumer.getOffsetStore();
-            Method fetchMethod = null;
-            if (offsetStore instanceof RemoteBrokerOffsetStore) {
-                try {
-                    fetchMethod = RemoteBrokerOffsetStore.class.getMethod("fetchConsumeOffsetFromBroker");
-                } catch (NoSuchMethodException e) {
-                    throw new RuntimeException(e);
-                }
-            }
-
-            Method finalFetchMethod = fetchMethod;
-            for (MessageQueue messageQueue : messageQueues) {
-                long offset = RetryUtil.call(
-                        () -> (Long) finalFetchMethod.invoke(offsetStore, messageQueue),
-                        "fetch offset from broker failed");
-                offsetMap.put(messageQueue, offset);
-            }
-            return offsetMap;
-        }
-
-        @Override
-        public Map<MessageQueue, Long> minOffsets(Collection<MessageQueue> messageQueues) {
-            Map<MessageQueue, Long> offsetMap = new ConcurrentHashMap<>();
-            for (MessageQueue messageQueue : messageQueues) {
-                try {
-                    long offset = this.adminExt.minOffset(messageQueue);
-                    offsetMap.put(messageQueue, offset);
-                } catch (MQClientException e) {
-                    throw new RuntimeException(e);
-                }
-            }
-            return offsetMap;
-        }
-
-        @Override
-        public Map<MessageQueue, Long> maxOffsets(Collection<MessageQueue> messageQueues) {
-            Map<MessageQueue, Long> offsetMap = new ConcurrentHashMap<>();
-            for (MessageQueue messageQueue : messageQueues) {
-                try {
-                    long offset = this.adminExt.maxOffset(messageQueue);
-                    offsetMap.put(messageQueue, offset);
-                } catch (MQClientException e) {
-                    throw new RuntimeException(e);
-                }
-            }
-            return offsetMap;
-        }
-
-        @Override
-        public Map<MessageQueue, Long> offsetsForTimes(Map<MessageQueue, Long> messageQueueWithTimeMap) {
-            Map<MessageQueue, Long> offsetMap = new ConcurrentHashMap<>();
-            List<CompletableFuture<Long>> futureList = new ArrayList<>(messageQueueWithTimeMap.size());
-            for (Map.Entry<MessageQueue, Long> entry : messageQueueWithTimeMap.entrySet()) {
-                CompletableFuture<Long> future = CompletableFuture.completedFuture(
-                        RetryUtil.call(() ->
-                                adminExt.searchOffset(entry.getKey(), entry.getValue()),
-                                "failed to search offset by timestamp"))
-                        .thenApply(aLong -> {
-                            offsetMap.put(entry.getKey(), aLong);
-                            return null;
-                        });
-                futureList.add(future);
-            }
-            CompletableFuture.allOf(futureList.toArray(new CompletableFuture[0])).join();
-            return offsetMap;
-        }
     }
 }

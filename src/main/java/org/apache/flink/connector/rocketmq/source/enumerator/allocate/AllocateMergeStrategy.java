@@ -20,6 +20,8 @@ package org.apache.flink.connector.rocketmq.source.enumerator.allocate;
 import org.apache.rocketmq.common.message.MessageQueue;
 
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 public class AllocateMergeStrategy implements AllocateStrategy {
 
@@ -29,7 +31,8 @@ public class AllocateMergeStrategy implements AllocateStrategy {
     }
 
     @Override
-    public List<MessageQueue> allocate(List<MessageQueue> mqAll, int index, int parallelism) {
+    public List<MessageQueue> allocate(Map<Integer, Set<MessageQueue>> currentAssignmentMap,
+                                       List<MessageQueue> mqAll, int index, int parallelism) {
         return mqAll;
     }
 }

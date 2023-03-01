@@ -20,6 +20,8 @@ package org.apache.flink.connector.rocketmq.source.enumerator.allocate;
 import org.apache.rocketmq.common.message.MessageQueue;
 
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Strategy Algorithm for message allocating between consumers
@@ -35,10 +37,12 @@ public interface AllocateStrategy {
 
     /**
      * Allocating by index and current parallelism
-     * @param mqAll partition info
-     * @param index reader index
+     *
+     * @param mqAll       partition info
+     * @param index       reader index
      * @param parallelism source parallelism
      * @return specific reader part
      */
-    List<MessageQueue> allocate(final List<MessageQueue> mqAll, final int index, final int parallelism);
+    List<MessageQueue> allocate(final Map<Integer, Set<MessageQueue>> currentAssignmentMap,
+                                final List<MessageQueue> mqAll, final int index, final int parallelism);
 }

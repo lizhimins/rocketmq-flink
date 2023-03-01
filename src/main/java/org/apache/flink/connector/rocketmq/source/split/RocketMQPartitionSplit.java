@@ -18,14 +18,15 @@
 
 package org.apache.flink.connector.rocketmq.source.split;
 
-import org.apache.rocketmq.common.message.MessageQueue;
-
 import org.apache.flink.api.connector.source.SourceSplit;
 import org.apache.flink.api.java.tuple.Tuple3;
+import org.apache.rocketmq.common.message.MessageQueue;
 
 import java.util.Objects;
 
-/** A {@link SourceSplit} for a RocketMQ partition. */
+/**
+ * A {@link SourceSplit} for a RocketMQ partition.
+ */
 public class RocketMQPartitionSplit implements SourceSplit {
 
     private final String topicName;

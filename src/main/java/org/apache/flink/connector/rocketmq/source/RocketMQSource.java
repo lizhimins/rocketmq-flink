@@ -18,8 +18,6 @@
 
 package org.apache.flink.connector.rocketmq.source;
 
-import org.apache.rocketmq.client.consumer.DefaultLitePullConsumer;
-
 import org.apache.flink.api.common.serialization.DeserializationSchema;
 import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.apache.flink.api.connector.source.Boundedness;
@@ -171,7 +169,7 @@ public class RocketMQSource<OUT>
                  stoppingMessageQueueOffsets,
                  sourceConfiguration,
                  enumContext,
-                 checkpoint.getAssignedPartitions());
+                 checkpoint.getCurrentSplitAssignment());
     }
 
     @Override

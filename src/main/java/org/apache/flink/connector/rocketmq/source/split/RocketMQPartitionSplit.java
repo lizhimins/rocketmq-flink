@@ -29,6 +29,8 @@ import java.util.Objects;
  */
 public class RocketMQPartitionSplit implements SourceSplit {
 
+    public static final long NO_STOPPING_OFFSET = Long.MAX_VALUE;
+
     private final String topicName;
     private final String brokerName;
     private final int partitionId;

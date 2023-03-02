@@ -29,7 +29,7 @@ public interface InnerConsumer extends AutoCloseable {
 
     CompletableFuture<Map<String /*topic*/, TopicRouteData>> getTopicRoute(List<String> topicList);
 
-    CompletableFuture<Long /*offset*/> seekCommittedOffset(MessageQueue messageQueue, String consumerGroup);
+    CompletableFuture<Long /*offset*/> seekCommittedOffset(MessageQueue messageQueue);
 
     CompletableFuture<Long /*offset*/> seekMinOffset(MessageQueue messageQueue);
 

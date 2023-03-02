@@ -17,6 +17,7 @@
 
 package org.apache.flink.connector.rocketmq.source.config;
 
+import org.apache.flink.api.connector.source.Boundedness;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.connector.rocketmq.common.config.RocketMQConfiguration;
 import org.apache.flink.connector.rocketmq.source.RocketMQSourceOptions;
@@ -33,6 +34,8 @@ public class SourceConfiguration extends RocketMQConfiguration {
     private final String consumerGroup;
 
     private final long partitionDiscoveryIntervalMs;
+
+    private final Boundedness boundedness;
 
     //private final int messageQueueCapacity;
     //private final long partitionDiscoveryIntervalMs;
@@ -57,6 +60,7 @@ public class SourceConfiguration extends RocketMQConfiguration {
         this.topicList = Arrays.asList(config.getString(RocketMQSourceOptions.TOPIC).split(TOPIC_LIST_SEPARATE));
         this.consumerGroup = config.getString(RocketMQSourceOptions.CONSUMER_GROUP);
         this.partitionDiscoveryIntervalMs = config.getLong(RocketMQSourceOptions.PARTITION_DISCOVERY_INTERVAL_MS);
+        this.boundedness = Boundedness.CONTINUOUS_UNBOUNDED;
 
         //this.messageQueueCapacity = 1;
         //this.partitionDiscoveryIntervalMs = 1;
@@ -88,5 +92,9 @@ public class SourceConfiguration extends RocketMQConfiguration {
 
     public long getPartitionDiscoveryIntervalMs() {
         return partitionDiscoveryIntervalMs;
+    }
+
+    public Boundedness getBoundedness() {
+        return boundedness;
     }
 }

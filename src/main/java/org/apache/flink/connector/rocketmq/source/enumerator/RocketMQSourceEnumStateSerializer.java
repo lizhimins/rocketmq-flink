@@ -18,9 +18,10 @@
 
 package org.apache.flink.connector.rocketmq.source.enumerator;
 
+import org.apache.flink.connector.base.source.utils.SerdeUtils;
 import org.apache.flink.connector.rocketmq.source.split.RocketMQPartitionSplit;
+import org.apache.flink.connector.rocketmq.source.split.RocketMQPartitionSplitSerializer;
 import org.apache.flink.core.io.SimpleVersionedSerializer;
-import org.apache.rocketmq.common.message.MessageQueue;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -30,6 +31,8 @@ import java.io.IOException;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 
 /**
  * The {@link SimpleVersionedSerializer Serializer} for the enumerator state of RocketMQ source.
@@ -46,57 +49,23 @@ public class RocketMQSourceEnumStateSerializer
 
     @Override
     public byte[] serialize(RocketMQSourceEnumState enumState) throws IOException {
-        Set<RocketMQPartitionSplit> assignedPartitions = enumState.getAssignedPartitions();
-        try (ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-             DataOutputStream out = new DataOutputStream(byteArrayOutputStream)) {
-            out.writeInt(assignedPartitions.size());
-            for (RocketMQPartitionSplit split : assignedPartitions) {
-                out.writeUTF(split.getTopicName());
-                out.writeUTF(split.getBrokerName());
-                out.writeInt(split.getPartitionId());
-                out.writeLong(split.getStartingOffset());
-                out.writeLong(split.getStoppingOffset());
-            }
-            out.flush();
-            return byteArrayOutputStream.toByteArray();
-        }
+        return SerdeUtils.serializeSplitAssignments(
+                enumState.getCurrentSplitAssignment(), new RocketMQPartitionSplitSerializer());
     }
 
     @Override
     public RocketMQSourceEnumState deserialize(int version, byte[] serialized) throws IOException {
         // Check whether the version of serialized bytes is supported.
         if (version == getVersion()) {
-            return new RocketMQSourceEnumState(deserializeTopicPartitions(serialized));
+            Map<Integer, Set<RocketMQPartitionSplit>> currentPartitionAssignment =
+                    SerdeUtils.deserializeSplitAssignments(
+                            serialized, new RocketMQPartitionSplitSerializer(), HashSet::new);
+            return new RocketMQSourceEnumState(currentPartitionAssignment);
         }
         throw new IOException(
                 String.format(
                         "The bytes are serialized with version %d, "
                                 + "while this deserializer only supports version up to %d",
                         version, getVersion()));
-    }
-
-    private static Map<MessageQueue, Long /*offset*/> deserializeTopicPartitions(byte[] serializedTopicPartitions)
-            throws IOException {
-        try (ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(serializedTopicPartitions);
-             DataInputStream in = new DataInputStream(byteArrayInputStream)) {
-
-            final int numPartitions = in.readInt();
-            Set<RocketMQPartitionSplit> topicPartitions = new HashSet<>(numPartitions);
-            for (int i = 0; i < numPartitions; i++) {
-                final String topicName = in.readUTF();
-                final String brokerName = in.readUTF();
-                final int partitionId = in.readInt();
-                final long startingOffset = in.readLong();
-                final long stoppingOffset = in.readLong();
-                final long currentOffset = in.readLong();
-                topicPartitions.add(new RocketMQPartitionSplit(
-                        topicName, brokerName, partitionId, startingOffset, stoppingOffset));
-            }
-            if (in.available() > 0) {
-                throw new IOException("Unexpected trailing bytes in serialized topic partitions");
-            }
-
-            return topicPartitions;
-        }
     }
 }

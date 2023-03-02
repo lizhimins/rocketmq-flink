@@ -28,12 +28,11 @@ import org.apache.rocketmq.acl.common.SessionCredentials;
 import org.apache.rocketmq.client.consumer.DefaultLitePullConsumer;
 import org.apache.rocketmq.client.consumer.store.OffsetStore;
 import org.apache.rocketmq.client.consumer.store.ReadOffsetType;
-import org.apache.rocketmq.client.consumer.store.RemoteBrokerOffsetStore;
 import org.apache.rocketmq.client.exception.MQClientException;
 import org.apache.rocketmq.common.message.MessageQueue;
+import org.apache.rocketmq.common.protocol.route.TopicRouteData;
 import org.apache.rocketmq.tools.admin.DefaultMQAdminExt;
 
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -54,7 +53,12 @@ public class InnerConsumerImpl implements InnerConsumer {
     }
 
     @Override
-    public CompletableFuture<Long> seekCommittedOffset(MessageQueue messageQueue, String consumerGroup) {
+    public CompletableFuture<Map<String, TopicRouteData>> getTopicRoute(List<String> topicList) {
+        return null;
+    }
+
+    @Override
+    public CompletableFuture<Long> seekCommittedOffset(MessageQueue messageQueue) {
         return null;
     }
 
@@ -95,17 +99,15 @@ public class InnerConsumerImpl implements InnerConsumer {
     public static class PartitionOffsetsRetrieverImpl
             implements MessageQueueOffsets.MessageQueueOffsetsRetriever, AutoCloseable {
 
-        private final DefaultLitePullConsumer consumer;
-        private final DefaultMQAdminExt adminExt;
+        private final InnerConsumer innerConsumer;
 
-        public PartitionOffsetsRetrieverImpl(DefaultLitePullConsumer consumer, DefaultMQAdminExt adminExt) {
-            this.consumer = consumer;
-            this.adminExt = adminExt;
+        public PartitionOffsetsRetrieverImpl(InnerConsumer innerConsumer) {
+            this.innerConsumer = innerConsumer;
         }
 
         @Override
         public void close() throws Exception {
-            this.adminExt.shutdown();
+            this.innerConsumer.close();
         }
 
         @Override

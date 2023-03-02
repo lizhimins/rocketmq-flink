@@ -17,6 +17,9 @@
 
 package org.apache.flink.connector.rocketmq.source.enumerator.allocate;
 
+import org.apache.flink.annotation.VisibleForTesting;
+import org.apache.flink.connector.rocketmq.source.enumerator.RocketMQSourceEnumerator;
+import org.apache.flink.connector.rocketmq.source.split.RocketMQPartitionSplit;
 import org.apache.rocketmq.common.message.MessageQueue;
 
 import java.util.List;
@@ -31,8 +34,42 @@ public class AllocateMergeStrategy implements AllocateStrategy {
     }
 
     @Override
-    public List<MessageQueue> allocate(Map<Integer, Set<MessageQueue>> currentAssignmentMap,
-                                       List<MessageQueue> mqAll, int index, int parallelism) {
-        return mqAll;
+    public Map<Integer, Set<RocketMQPartitionSplit>> allocate(
+            Map<Integer, Set<RocketMQPartitionSplit>> currentAssignmentMap,
+            RocketMQSourceEnumerator.PartitionSplitChange partitionSplitChange, int parallelism) {
+
+        return null;
     }
+
+    /**
+     * Returns the index of the target subtask that a specific RocketMQ partition should be assigned
+     * to.
+     *
+     * <p>The resulting distribution of partitions of a single topic has the following contract:
+     *
+     * <ul>
+     *   <li>1. Uniformly distributed across subtasks
+     *   <li>2. Partitions are round-robin distributed (strictly clockwise w.r.t. ascending subtask
+     *       indices) by using the partition id as the offset from a starting index (i.e., the index
+     *       of the subtask which partition 0 of the topic will be assigned to, determined using the
+     *       topic name).
+     * </ul>
+     *
+     * @param messageQueue the rocketmq message queue
+     * @param numReaders   the total number of readers.
+     * @return the id of the subtask that owns the split.
+     */
+    @VisibleForTesting
+    static int getSplitOwner(MessageQueue messageQueue, int numReaders) {
+        String topic = messageQueue.getTopic();
+        String broker = messageQueue.getBrokerName();
+        int partition = messageQueue.getQueueId();
+        int startIndex = (((topic + "-" + broker).hashCode() * 31) & 0x7FFFFFFF) % numReaders;
+
+        // here, the assumption is that the id of RocketMQ partitions are always ascending
+        // starting from 0, and therefore can be used directly as the offset clockwise from the
+        // start index
+        return (startIndex + partition) % numReaders;
+    }
+
 }

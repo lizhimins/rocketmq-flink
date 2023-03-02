@@ -17,9 +17,9 @@
 
 package org.apache.flink.connector.rocketmq.source.enumerator.allocate;
 
-import org.apache.rocketmq.common.message.MessageQueue;
+import org.apache.flink.connector.rocketmq.source.enumerator.RocketMQSourceEnumerator;
+import org.apache.flink.connector.rocketmq.source.split.RocketMQPartitionSplit;
 
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -27,12 +27,15 @@ public class AllocateLatestStrategy implements AllocateStrategy {
 
     @Override
     public String getStrategyName() {
-        return "discard";
+        return "latest";
     }
 
     @Override
-    public List<MessageQueue> allocate(Map<Integer, Set<MessageQueue>> currentAssignmentMap,
-                                       List<MessageQueue> mqAll, int index, int parallelism) {
-        return mqAll;
+    public Map<Integer, Set<RocketMQPartitionSplit>> allocate(
+            Map<Integer, Set<RocketMQPartitionSplit>> currentAssignmentMap,
+            RocketMQSourceEnumerator.PartitionSplitChange partitionSplitChange, int parallelism) {
+
+        // ignore current allocate
+        return currentAssignmentMap;
     }
 }

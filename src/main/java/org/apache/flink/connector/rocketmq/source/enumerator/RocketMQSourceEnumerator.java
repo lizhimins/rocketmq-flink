@@ -41,16 +41,14 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.Consumer;
-import java.util.function.Function;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * The enumerator class for RocketMQ source.
@@ -199,12 +197,10 @@ public class RocketMQSourceEnumerator
     private Set<MessageQueue> initializeMessageQueueSplits() {
         try {
             Set<MessageQueue> existQueueSet = Collections.unmodifiableSet(discoveredPartitions);
-            Map<String, TopicRouteData> topicRouteDataMap =
-                    consumer.getTopicRoute(sourceConfiguration.getTopicList()).get();
-            Set<MessageQueue> currentQueueSet = topicRouteDataMap.entrySet().stream()
-                    .flatMap(entry -> MQClientInstance.topicRouteData2TopicSubscribeInfo(
-                            entry.getKey(), entry.getValue()).stream())
-                    .collect(Collectors.toSet());
+            Set<MessageQueue> currentQueueSet = Sets.newHashSet();
+            for (String topic : sourceConfiguration.getTopicSet()) {
+                currentQueueSet.addAll(consumer.fetchMessageQueues(topic).get());
+            }
             currentQueueSet.removeAll(existQueueSet);
             discoveredPartitions.addAll(currentQueueSet);
         } catch (Exception e) {
@@ -236,7 +232,7 @@ public class RocketMQSourceEnumerator
                 Collections.unmodifiableSet(messageQueueChange.getNewPartitions());
 
         MessageQueueOffsets.MessageQueueOffsetsRetriever offsetsRetriever =
-                new InnerConsumerImpl.PartitionOffsetsRetrieverImpl(consumer);
+                new InnerConsumerImpl.RemotingOffsetsRetrieverImpl(consumer);
         Map<MessageQueue, Long> startingOffsets =
                 startingMessageQueueOffsets.getMessageQueueOffsets(newPartitions, offsetsRetriever);
         Map<MessageQueue, Long> stoppingOffsets =

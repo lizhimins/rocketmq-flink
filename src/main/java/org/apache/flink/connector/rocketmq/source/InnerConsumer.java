@@ -17,27 +17,111 @@
 
 package org.apache.flink.connector.rocketmq.source;
 
-import org.apache.flink.connector.rocketmq.source.reader.MessageView;
+import org.apache.rocketmq.common.message.MessageExt;
 import org.apache.rocketmq.common.message.MessageQueue;
-import org.apache.rocketmq.common.protocol.route.TopicRouteData;
 
+import java.time.Duration;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
-import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
 public interface InnerConsumer extends AutoCloseable {
 
-    CompletableFuture<Map<String /*topic*/, TopicRouteData>> getTopicRoute(List<String> topicList);
+    /**
+     * Get the consumer group of the consumer.
+     */
+    String getConsumerGroup();
 
+    /**
+     * Fetch message queues of the topic.
+     *
+     * @param topic topic list
+     * @return key is topic, values are message queue collections
+     */
+    CompletableFuture<Collection<MessageQueue>> fetchMessageQueues(String topic);
+
+    /**
+     * Manually assign a list of message queues to this consumer. This interface does not allow for incremental
+     * assignment and will replace the previous assignment (if there is one).
+     *
+     * @param messageQueues Message queues that needs to be assigned.
+     */
+    void assign(Collection<MessageQueue> messageQueues);
+
+    /**
+     * Fetch data for the topics or partitions specified using assign API
+     *
+     * @return list of message, can be null.
+     */
+    List<MessageExt> poll(Duration timeout);
+
+    /**
+     * interrupt poll message
+     */
+    void wakeup();
+
+    /**
+     * Suspending message pulling from the message queues.
+     *
+     * @param messageQueues message queues that need to be suspended.
+     */
+    void pause(Collection<MessageQueue> messageQueues);
+
+    /**
+     * Resuming message pulling from the message queues.
+     *
+     * @param messageQueues message queues that need to be resumed.
+     */
+    void resume(Collection<MessageQueue> messageQueues);
+
+    /**
+     * Overrides the fetch offsets that the consumer will use on the next poll. If this method is invoked for the same
+     * message queue more than once, the latest offset will be used on the next {@link #poll(Duration)}.
+     *
+     * @param messageQueue the message queue to override the fetch offset.
+     * @param offset       message offset.
+     */
+    void seek(MessageQueue messageQueue, long offset);
+
+    /**
+     * Seek consumer group previously committed offset
+     *
+     * @param messageQueue rocketmq queue to locate single queue
+     * @return offset for message queue
+     */
     CompletableFuture<Long /*offset*/> seekCommittedOffset(MessageQueue messageQueue);
 
+    /**
+     * Seek consumer group previously committed offset
+     *
+     * @param messageQueue rocketmq queue to locate single queue
+     * @return offset for message queue
+     */
     CompletableFuture<Long /*offset*/> seekMinOffset(MessageQueue messageQueue);
 
+    /**
+     * Seek consumer group previously committed offset
+     *
+     * @param messageQueue rocketmq queue to locate single queue
+     * @return offset for message queue
+     */
     CompletableFuture<Long /*offset*/> seekMaxOffset(MessageQueue messageQueue);
 
-    CompletableFuture<Long /*offset*/> seekOffsetsForTimestamp(MessageQueue messageQueue, long timestamp);
+    /**
+     * Seek consumer group previously committed offset
+     *
+     * @param messageQueue rocketmq queue to locate single queue
+     * @return offset for message queue
+     */
+    CompletableFuture<Long /*offset*/> seekOffsetForTimestamp(MessageQueue messageQueue, long timestamp);
 
-    CompletableFuture<List<MessageView>> pullBlockIfNotFound(MessageQueue messageQueue, long offset);
-
+    /**
+     * Seek consumer group previously committed offset
+     *
+     * @param messageQueue rocketmq queue to locate single queue
+     * @return offset for message queue
+     */
     CompletableFuture<Void> commitOffset(MessageQueue messageQueue, long offset);
 }

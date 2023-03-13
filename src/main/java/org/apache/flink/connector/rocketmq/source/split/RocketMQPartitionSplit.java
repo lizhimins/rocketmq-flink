@@ -19,7 +19,6 @@
 package org.apache.flink.connector.rocketmq.source.split;
 
 import org.apache.flink.api.connector.source.SourceSplit;
-import org.apache.flink.api.java.tuple.Tuple3;
 import org.apache.rocketmq.common.message.MessageQueue;
 
 import java.util.Objects;
@@ -107,9 +106,5 @@ public class RocketMQPartitionSplit implements SourceSplit {
                 && partitionId == other.partitionId
                 && startingOffset == other.startingOffset
                 && stoppingOffset == other.stoppingOffset;
-    }
-
-    public static String toSplitId(Tuple3<String, String, Integer> topicPartition) {
-        return topicPartition.f0 + "-" + topicPartition.f1 + "-" + topicPartition.f2;
     }
 }

@@ -36,7 +36,7 @@ import org.apache.flink.connector.rocketmq.source.enumerator.RocketMQSourceEnumS
 import org.apache.flink.connector.rocketmq.source.enumerator.RocketMQSourceEnumerator;
 import org.apache.flink.connector.rocketmq.source.enumerator.initializer.MessageQueueOffsets;
 import org.apache.flink.connector.rocketmq.source.metrics.RocketMQSourceReaderMetrics;
-import org.apache.flink.connector.rocketmq.source.reader.RocketMQPartitionSplitReader;
+import org.apache.flink.connector.rocketmq.source.reader.RocketMQSplitReader;
 import org.apache.flink.connector.rocketmq.source.reader.RocketMQRecordEmitter;
 import org.apache.flink.connector.rocketmq.source.reader.RocketMQSourceReader;
 import org.apache.flink.connector.rocketmq.source.reader.MessageView;
@@ -130,7 +130,7 @@ public class RocketMQSource<OUT>
 
         Supplier<SplitReader<MessageView, RocketMQPartitionSplit>> splitReaderSupplier =
                 () ->
-                        new RocketMQPartitionSplitReader<>(
+                        new RocketMQSplitReader<>(
                                 sourceConfiguration,
                                 readerContext,
                                 deserializationSchema,

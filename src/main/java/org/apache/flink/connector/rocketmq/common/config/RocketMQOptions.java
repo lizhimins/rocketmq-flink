@@ -143,5 +143,5 @@ public class RocketMQOptions {
             ConfigOptions.key(CLIENT_CONFIG_PREFIX + "accessKey").stringType().noDefaultValue();
 
     public static final ConfigOption<String> OPTIONAL_SECRET_KEY =
-            ConfigOptions.key(CLIENT_CONFIG_PREFIX + "accessKey").stringType().noDefaultValue();
+            ConfigOptions.key(CLIENT_CONFIG_PREFIX + "secretKey").stringType().noDefaultValue();
 }

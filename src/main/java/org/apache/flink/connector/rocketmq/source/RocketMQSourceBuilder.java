@@ -17,6 +17,7 @@
 
 package org.apache.flink.connector.rocketmq.source;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.flink.annotation.PublicEvolving;
 import org.apache.flink.api.common.serialization.DeserializationSchema;
 import org.apache.flink.api.connector.source.Boundedness;
@@ -41,6 +42,9 @@ public class RocketMQSourceBuilder<OUT> {
 
     private static final Logger log = LoggerFactory.getLogger(RocketMQSourceBuilder.class);
 
+    // The configurations.
+    protected final RocketMQConfigBuilder configBuilder;
+
     // The consumer specifies the message queue to pull messages.
     protected InnerConsumerImpl consumer;
 
@@ -54,10 +58,9 @@ public class RocketMQSourceBuilder<OUT> {
     // Deserialization Schema
     private RocketMQDeserializationSchema<OUT> deserializationSchema;
 
-    // The configurations.
-    protected RocketMQConfigBuilder configBuilder;
-
     RocketMQSourceBuilder() {
+        this.configBuilder = new RocketMQConfigBuilder();
+        this.boundedness = Boundedness.CONTINUOUS_UNBOUNDED;
     }
 
     /**
@@ -67,7 +70,7 @@ public class RocketMQSourceBuilder<OUT> {
      * @return this RocketMQSourceBuilder.
      */
     public RocketMQSourceBuilder<OUT> setEndpoints(String endpoints) {
-        configBuilder.set(RocketMQSourceOptions.ENDPOINTS, endpoints);
+        this.configBuilder.set(RocketMQSourceOptions.ENDPOINTS, endpoints);
         return this;
     }
 
@@ -78,7 +81,7 @@ public class RocketMQSourceBuilder<OUT> {
      * @return this RocketMQSourceBuilder.
      */
     public RocketMQSourceBuilder<OUT> setGroupId(String groupId) {
-        configBuilder.set(RocketMQSourceOptions.CONSUMER_GROUP, groupId);
+        this.configBuilder.set(RocketMQSourceOptions.CONSUMER_GROUP, groupId);
         return this;
     }
 
@@ -91,6 +94,8 @@ public class RocketMQSourceBuilder<OUT> {
      * @return this RocketMQSourceBuilder.
      */
     public RocketMQSourceBuilder<OUT> setTopics(List<String> topics) {
+        this.configBuilder.set(RocketMQSourceOptions.TOPIC,
+                StringUtils.join(topics, RocketMQSourceOptions.TOPIC_SEPARATOR));
         return this;
     }
 

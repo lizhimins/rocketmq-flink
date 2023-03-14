@@ -115,6 +115,7 @@ public class RocketMQSourceEnumerator
                 .flatMap(splits -> splits.stream().map(split ->
                         new MessageQueue(split.getTopicName(), split.getBrokerName(), split.getPartitionId())))
                 .collect(Collectors.toSet());
+        this.pendingPartitionSplitAssignment = new HashMap<>();
         this.currentPartitionSplitAssignment = currentPartitionSplitAssignment;
     }
 
@@ -214,7 +215,7 @@ public class RocketMQSourceEnumerator
         if (t != null) {
             throw new FlinkRuntimeException("Failed to handle partition splits change due to ", t);
         }
-        if (sourceConfiguration.isEnablePartitionDiscovery()) {
+        if (!sourceConfiguration.isEnablePartitionDiscovery()) {
             LOG.warn("Partition has changed, but not enable partition discovery");
         }
         final MessageQueueChange messageQueueChange = getPartitionChange(latestPartitionSet);
@@ -373,7 +374,7 @@ public class RocketMQSourceEnumerator
                     beforeSet, latestMessageQueueSet, change.getNewPartitions(), change.getRemovedPartitions());
         } else {
             // before message queue set is same as latest message queue set
-            LOG.info("No partitions change, total: {}", beforeSet);
+            LOG.info("Topic route data not change, total partition num: {}", beforeSet.size());
         }
         return change;
     }

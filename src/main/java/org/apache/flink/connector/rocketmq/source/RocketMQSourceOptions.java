@@ -31,13 +31,12 @@ import org.apache.rocketmq.common.protocol.heartbeat.MessageModel;
 public class RocketMQSourceOptions extends RocketMQOptions {
 
     public static final RocketMQConfigValidator SOURCE_CONFIG_VALIDATOR =
-            RocketMQConfigValidator.builder()
-                    .requiredOption(RocketMQSourceOptions.ENDPOINTS)
-                    .requiredOption(RocketMQSourceOptions.CONSUMER_GROUP)
-                    .build();
+            RocketMQConfigValidator.builder().build();
 
     // rocketmq client API config prefix.
     public static final String CONSUMER_PREFIX = "rocketmq.consumer.";
+
+    public static final String TOPIC_SEPARATOR = ";";
 
     public static final ConfigOption<String> TOPIC =
             ConfigOptions.key(CONSUMER_PREFIX + "topic")
@@ -48,7 +47,7 @@ public class RocketMQSourceOptions extends RocketMQOptions {
     public static final ConfigOption<String> CONSUMER_GROUP =
             ConfigOptions.key(CONSUMER_PREFIX + "group")
                     .stringType()
-                    .defaultValue("Flink-Consumer")
+                    .noDefaultValue()
                     .withDescription(
                             "The name of the consumer group, used to identify a type of consumer");
 

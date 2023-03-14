@@ -39,7 +39,8 @@ import java.util.Properties;
 import static org.apache.flink.connector.rocketmq.legacy.RocketMQConfig.CONSUMER_OFFSET_LATEST;
 import static org.apache.flink.connector.rocketmq.legacy.RocketMQConfig.DEFAULT_CONSUMER_TAG;
 
-public class RocketMQFlinkExample {
+@Deprecated
+public class ConnectorExample {
 
     /**
      * Source Config

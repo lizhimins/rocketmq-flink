@@ -17,6 +17,7 @@
 
 package org.apache.flink.connector.rocketmq.source;
 
+import com.google.common.collect.Sets;
 import org.apache.flink.annotation.VisibleForTesting;
 import org.apache.flink.connector.rocketmq.source.config.SourceConfiguration;
 import org.apache.flink.connector.rocketmq.source.enumerator.initializer.MessageQueueOffsets;
@@ -30,6 +31,7 @@ import org.apache.rocketmq.common.protocol.route.TopicRouteData;
 
 import java.time.Duration;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -93,12 +95,16 @@ public class InnerConsumerImpl implements InnerConsumer {
     @Override
     public CompletableFuture<Collection<MessageQueue>> fetchMessageQueues(String topic) {
 
+        MessageQueue messageQueue =
+                new MessageQueue("flink-source-1", "xieyang-broker-1", 2);
+
+        return CompletableFuture.completedFuture(Sets.newHashSet(messageQueue));
 
         //Set<MessageQueue> currentQueueSet = topicRouteDataMap.entrySet().stream()
         //        .flatMap(entry -> MQClientInstance.topicRouteData2TopicSubscribeInfo(
         //                entry.getKey(), entry.getValue()).stream())
         //        .collect(Collectors.toSet());
-        return null;
+        //return null;
     }
 
 

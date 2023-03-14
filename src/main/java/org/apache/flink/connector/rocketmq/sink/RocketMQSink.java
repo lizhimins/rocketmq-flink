@@ -21,12 +21,26 @@ import org.apache.flink.annotation.PublicEvolving;
 import org.apache.flink.api.connector.sink2.Committer;
 import org.apache.flink.api.connector.sink2.TwoPhaseCommittingSink;
 import org.apache.flink.connector.rocketmq.sink.committer.RocketMQCommittable;
+import org.apache.flink.connector.rocketmq.sink.committer.RocketMQCommittableSerializer;
+import org.apache.flink.connector.rocketmq.sink.committer.RocketMQCommitter;
+import org.apache.flink.connector.rocketmq.sink.config.SinkConfiguration;
+import org.apache.flink.connector.rocketmq.sink.writer.RocketMQWriter;
+import org.apache.flink.connector.rocketmq.sink.writer.serializer.RocketMQSerializationSchema;
 import org.apache.flink.core.io.SimpleVersionedSerializer;
 
 import java.io.IOException;
 
 @PublicEvolving
 public class RocketMQSink<IN> implements TwoPhaseCommittingSink<IN, RocketMQCommittable> {
+
+    private final SinkConfiguration sinkConfiguration;
+    private final RocketMQSerializationSchema<IN> serializationSchema;
+
+    RocketMQSink(SinkConfiguration sinkConfiguration,
+                 RocketMQSerializationSchema<IN> serializationSchema) {
+        this.sinkConfiguration = sinkConfiguration;
+        this.serializationSchema = serializationSchema;
+    }
 
     /**
      * Create a {@link RocketMQSinkBuilder} to construct a new {@link RocketMQSink}.
@@ -39,18 +53,17 @@ public class RocketMQSink<IN> implements TwoPhaseCommittingSink<IN, RocketMQComm
     }
 
     @Override
-    public PrecommittingSinkWriter<IN, RocketMQCommittable> createWriter(InitContext context)
-            throws IOException {
-        return null;
+    public PrecommittingSinkWriter<IN, RocketMQCommittable> createWriter(InitContext context) {
+        return new RocketMQWriter<>();
     }
 
     @Override
-    public Committer<RocketMQCommittable> createCommitter() throws IOException {
-        return null;
+    public Committer<RocketMQCommittable> createCommitter() {
+        return new RocketMQCommitter(sinkConfiguration);
     }
 
     @Override
     public SimpleVersionedSerializer<RocketMQCommittable> getCommittableSerializer() {
-        return null;
+        return new RocketMQCommittableSerializer();
     }
 }

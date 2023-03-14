@@ -26,11 +26,25 @@ public class RocketMQCommittable {
     /** The topic name with partition information. */
     private final String topic;
 
-    public RocketMQCommittable(String topic) {
+    private final String brokerName;
+
+    private final String transactionId;
+
+    public RocketMQCommittable(String topic, String brokerName, String transactionId) {
         this.topic = topic;
+        this.brokerName = brokerName;
+        this.transactionId = transactionId;
     }
 
     public String getTopic() {
         return topic;
+    }
+
+    public String getBrokerName() {
+        return brokerName;
+    }
+
+    public String getTransactionId() {
+        return transactionId;
     }
 }

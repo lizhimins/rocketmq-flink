@@ -17,9 +17,31 @@
 
 package org.apache.flink.connector.rocketmq.sink.committer;
 
+import org.apache.flink.api.connector.sink2.Committer;
+import org.apache.flink.connector.rocketmq.sink.RocketMQSink;
+import org.apache.flink.connector.rocketmq.sink.config.SinkConfiguration;
+import org.apache.flink.connector.rocketmq.source.config.SourceConfiguration;
+
+import java.util.Collection;
+
 /**
- * Committer implementation for {@link KafkaSink}
+ * Committer implementation for {@link RocketMQSink}
  *
  * <p>The committer is responsible to finalize the Kafka transactions by committing them.
  */
-public class RocketMQCommitter {}
+public class RocketMQCommitter implements Committer<RocketMQCommittable>, Cloneable {
+
+    public RocketMQCommitter(SinkConfiguration sinkConfiguration) {
+
+    }
+
+    @Override
+    public void commit(Collection<CommitRequest<RocketMQCommittable>> requests) {
+
+    }
+
+    @Override
+    public void close() throws Exception {
+
+    }
+}

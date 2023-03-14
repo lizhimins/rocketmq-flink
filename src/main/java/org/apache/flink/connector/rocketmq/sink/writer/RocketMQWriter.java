@@ -19,8 +19,8 @@ package org.apache.flink.connector.rocketmq.sink.writer;
 
 import org.apache.flink.api.common.eventtime.Watermark;
 import org.apache.flink.api.connector.sink2.TwoPhaseCommittingSink;
-import org.apache.flink.connector.base.DeliveryGuarantee;
 import org.apache.flink.connector.rocketmq.sink.committer.RocketMQCommittable;
+import org.apache.flink.connector.rocketmq.sink.config.SinkConfiguration;
 import org.apache.flink.connector.rocketmq.sink.writer.context.RocketMQSinkContext;
 import org.apache.flink.connector.rocketmq.sink.writer.serializer.RocketMQSerializationSchema;
 import org.apache.flink.shaded.guava30.com.google.common.io.Closer;
@@ -42,12 +42,12 @@ public class RocketMQWriter<IN>
     private static final String KEY_REGISTER_METRICS = "register.producer.metrics";
     private static final String KAFKA_PRODUCER_METRICS = "producer-metrics";
 
-    private final DeliveryGuarantee deliveryGuarantee;
+    //private final DeliveryGuarantee deliveryGuarantee;
 
-    private final RocketMQSerializationSchema<IN> serializationSchema;
+    //private final RocketMQSerializationSchema<IN> serializationSchema;
 
     // private final Callback deliveryCallback;
-    private final RocketMQSinkContext rocketmqSinkContext;
+    //private final RocketMQSinkContext rocketmqSinkContext;
 
     // private final Map<String, KafkaMetricMutableWrapper> previouslyCreatedMetrics = new
     // HashMap<>();
@@ -74,16 +74,17 @@ public class RocketMQWriter<IN>
     private boolean closed = false;
     private long lastSync = System.currentTimeMillis();
 
+    public RocketMQWriter() {
+
+    }
+
     public RocketMQWriter(
-            DeliveryGuarantee deliveryGuarantee,
+            SinkConfiguration sinkConfiguration,
             RocketMQSerializationSchema<IN> serializationSchema,
-            RocketMQSinkContext rocketmqSinkContext,
-            MQProducer currentProducer) {
-        this.deliveryGuarantee = deliveryGuarantee;
-        this.serializationSchema = serializationSchema;
-        this.rocketmqSinkContext = rocketmqSinkContext;
-        this.currentProducer = currentProducer;
-        this.lastCheckpointId = lastCheckpointId;
+            RocketMQSinkContext rocketmqSinkContext) {
+        //this.deliveryGuarantee = sinkConfiguration.getDeliveryGuarantee();
+        //this.serializationSchema = serializationSchema;
+        //this.rocketmqSinkContext = rocketmqSinkContext;
     }
 
     @Override

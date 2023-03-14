@@ -33,6 +33,7 @@ import org.apache.flink.connector.rocketmq.source.reader.deserializer.RocketMQDe
 import org.apache.flink.connector.rocketmq.source.split.RocketMQPartitionSplit;
 import org.apache.flink.util.Collector;
 import org.apache.flink.util.Preconditions;
+import org.apache.flink.util.StringUtils;
 import org.apache.rocketmq.client.exception.MQClientException;
 import org.apache.rocketmq.common.message.MessageExt;
 import org.apache.rocketmq.common.message.MessageQueue;
@@ -68,7 +69,6 @@ public class RocketMQSplitReader<T>
     private static final Logger LOG = LoggerFactory.getLogger(RocketMQSplitReader.class);
 
     private InnerConsumer consumer;
-    private SimpleCollector<T> collector;
 
     private volatile boolean wakeup = false;
 
@@ -106,12 +106,16 @@ public class RocketMQSplitReader<T>
      */
     @Override
     public RecordsWithSplitIds<MessageView> fetch() throws IOException {
-        RocketMQRecordsWithSplitIds<MessageView> recordsBySplits =
+        RocketMQRecordsWithSplitIds<MessageView> recordsWithSplitIds =
                 new RocketMQRecordsWithSplitIds<>(rocketmqSourceReaderMetrics);
-        List<MessageExt> messageExtList = consumer.poll(Duration.ofMillis(10 * 1000L));
-
-        recordsBySplits.prepareForRead();
-        return recordsBySplits;
+        List<MessageView> messageExtList = consumer.poll(sourceConfiguration.getPollTimeout());
+        for (MessageView messageView : messageExtList) {
+            String splitId = this.getSplitId(new MessageQueue(
+                    messageView.getTopic(), messageView.getBrokerName(), messageView.getQueueId()));
+            recordsWithSplitIds.recordsForSplit(splitId).add(messageView);
+        }
+        recordsWithSplitIds.prepareForRead();
+        return recordsWithSplitIds;
     }
 
     @Override
@@ -172,36 +176,40 @@ public class RocketMQSplitReader<T>
         }
     }
 
-    private void finishSplitAtRecord(MessageQueue topicPartition, long stoppingTimestamp, long currentOffset,
+    private String getSplitId(MessageQueue mq) {
+        return mq.getTopic() + "#" + mq.getBrokerName() + "#" + mq.getQueueId();
+    }
+
+    private void finishSplitAtRecord(MessageQueue messageQueue, long currentOffset,
             RocketMQRecordsWithSplitIds<MessageView> recordsBySplits) {
-        //LOG.debug(
-        //        "{} has reached stopping timestamp {}, current offset is {}",
-        //        topicPartition.f0 + "-" + topicPartition.f1,
-        //        stoppingTimestamp,
-        //        currentOffset);
-        recordsBySplits.addFinishedSplit(RocketMQPartitionSplit.toSplitId(topicPartition));
-        startingOffsets.remove(topicPartition);
-        stoppingTimestamps.remove(topicPartition);
+
+        LOG.info("message queue {} has reached stopping offset {}", messageQueue, currentOffset);
+        recordsBySplits.addFinishedSplit(getSplitId(messageQueue));
+        this.currentOffsetTable.remove(messageQueue);
     }
 
     // ---------------- private helper class ------------------------
 
     private static class RocketMQRecordsWithSplitIds<T> implements RecordsWithSplitIds<T> {
 
-        // Mark split message queue as current split id
+        // Mark split message queue identifier as current split id
         private String currentSplitId;
 
+        private final Set<String> finishedSplits = new HashSet<>();
         private Iterator<T> recordIterator;
+
+        private final Map<String, List<T>> recordsBySplits = new HashMap<>();
         private Iterator<Map.Entry<String, List<T>>> splitIterator;
 
         private final RocketMQSourceReaderMetrics readerMetrics;
-        private final Set<String> finishedSplits = new HashSet<>();
-        private final Map<String, List<T>> recordsBySplits = new HashMap<>();
 
         public RocketMQRecordsWithSplitIds(RocketMQSourceReaderMetrics readerMetrics) {
             this.readerMetrics = readerMetrics;
         }
 
+        /**
+         * return records container
+         */
         private Collection<T> recordsForSplit(String splitId) {
             return recordsBySplits.computeIfAbsent(splitId, id -> new ArrayList<>());
         }
@@ -214,6 +222,10 @@ public class RocketMQSplitReader<T>
             splitIterator = recordsBySplits.entrySet().iterator();
         }
 
+        /**
+         * Moves to the next split. This method is also called initially to move to the first split.
+         * Returns null, if no splits are left.
+         */
         @Nullable
         @Override
         public String nextSplit() {
@@ -229,6 +241,10 @@ public class RocketMQSplitReader<T>
             }
         }
 
+        /**
+         * Gets the next record from the current split. Returns null if no more records are left in this
+         * split.
+         */
         @Nullable
         @Override
         public T nextRecordFromSplit() {
@@ -246,27 +262,6 @@ public class RocketMQSplitReader<T>
         @Override
         public Set<String> finishedSplits() {
             return finishedSplits;
-        }
-    }
-
-    private static class SimpleCollector<T> implements Collector<T> {
-        private final List<T> records = new ArrayList<>();
-
-        @Override
-        public void collect(T record) {
-            records.add(record);
-        }
-
-        @Override
-        public void close() {
-        }
-
-        private List<T> getRecords() {
-            return records;
-        }
-
-        private void reset() {
-            records.clear();
         }
     }
 }

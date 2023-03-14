@@ -20,11 +20,11 @@ package org.apache.flink.connector.rocketmq.source;
 import org.apache.flink.annotation.VisibleForTesting;
 import org.apache.flink.connector.rocketmq.source.config.SourceConfiguration;
 import org.apache.flink.connector.rocketmq.source.enumerator.initializer.MessageQueueOffsets;
+import org.apache.flink.connector.rocketmq.source.reader.MessageView;
 import org.apache.flink.util.StringUtils;
 import org.apache.rocketmq.acl.common.AclClientRPCHook;
 import org.apache.rocketmq.acl.common.SessionCredentials;
 import org.apache.rocketmq.client.consumer.DefaultLitePullConsumer;
-import org.apache.rocketmq.common.message.MessageExt;
 import org.apache.rocketmq.common.message.MessageQueue;
 import org.apache.rocketmq.common.protocol.route.TopicRouteData;
 
@@ -108,7 +108,7 @@ public class InnerConsumerImpl implements InnerConsumer {
     }
 
     @Override
-    public List<MessageExt> poll(Duration timeout) {
+    public List<MessageView> poll(Duration timeout) {
         return null;
     }
 

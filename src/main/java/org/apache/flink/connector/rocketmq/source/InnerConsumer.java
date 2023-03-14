@@ -17,14 +17,12 @@
 
 package org.apache.flink.connector.rocketmq.source;
 
-import org.apache.rocketmq.common.message.MessageExt;
+import org.apache.flink.connector.rocketmq.source.reader.MessageView;
 import org.apache.rocketmq.common.message.MessageQueue;
 
 import java.time.Duration;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
-import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
 public interface InnerConsumer extends AutoCloseable {
@@ -55,7 +53,7 @@ public interface InnerConsumer extends AutoCloseable {
      *
      * @return list of message, can be null.
      */
-    List<MessageExt> poll(Duration timeout);
+    List<MessageView> poll(Duration timeout);
 
     /**
      * interrupt poll message

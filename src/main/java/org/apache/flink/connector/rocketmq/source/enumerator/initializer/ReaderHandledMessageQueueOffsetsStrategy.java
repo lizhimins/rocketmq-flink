@@ -26,13 +26,13 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
-public class ReaderHandledMessageQueueMessageQueueOffsets
-        implements MessageQueueOffsets, MessageQueueOffsetsValidator {
+public class ReaderHandledMessageQueueOffsetsStrategy
+        implements OffsetsStrategy, MessageQueueOffsetsValidator {
 
     private final ConsumeFromWhere consumeFromWhere;
     private final OffsetResetStrategy offsetResetStrategy;
 
-    ReaderHandledMessageQueueMessageQueueOffsets(
+    ReaderHandledMessageQueueOffsetsStrategy(
             ConsumeFromWhere consumeFromWhere, OffsetResetStrategy offsetResetStrategy) {
         this.consumeFromWhere = consumeFromWhere;
         this.offsetResetStrategy = offsetResetStrategy;

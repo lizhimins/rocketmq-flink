@@ -34,7 +34,7 @@ import org.apache.flink.connector.rocketmq.source.config.SourceConfiguration;
 import org.apache.flink.connector.rocketmq.source.enumerator.RocketMQSourceEnumState;
 import org.apache.flink.connector.rocketmq.source.enumerator.RocketMQSourceEnumStateSerializer;
 import org.apache.flink.connector.rocketmq.source.enumerator.RocketMQSourceEnumerator;
-import org.apache.flink.connector.rocketmq.source.enumerator.initializer.MessageQueueOffsets;
+import org.apache.flink.connector.rocketmq.source.enumerator.initializer.OffsetsStrategy;
 import org.apache.flink.connector.rocketmq.source.metrics.RocketMQSourceReaderMetrics;
 import org.apache.flink.connector.rocketmq.source.reader.RocketMQSplitReader;
 import org.apache.flink.connector.rocketmq.source.reader.RocketMQRecordEmitter;
@@ -64,8 +64,8 @@ public class RocketMQSource<OUT>
     private final InnerConsumer consumer;
 
     // Users can specify the starting / stopping offset initializer.
-    private final MessageQueueOffsets startingMessageQueueOffsets;
-    private final MessageQueueOffsets stoppingMessageQueueOffsets;
+    private final OffsetsStrategy startingOffsetsStrategy;
+    private final OffsetsStrategy stoppingOffsetsStrategy;
 
     // The configurations.
     private final SourceConfiguration sourceConfiguration;
@@ -78,14 +78,14 @@ public class RocketMQSource<OUT>
 
     public RocketMQSource(
             InnerConsumer consumer,
-            MessageQueueOffsets startingMessageQueueOffsets,
-            MessageQueueOffsets stoppingMessageQueueOffsets,
+            OffsetsStrategy startingOffsetsStrategy,
+            OffsetsStrategy stoppingOffsetsStrategy,
             Boundedness boundedness,
             RocketMQDeserializationSchema<OUT> deserializationSchema,
             SourceConfiguration sourceConfiguration) {
         this.consumer = consumer;
-        this.startingMessageQueueOffsets = startingMessageQueueOffsets;
-        this.stoppingMessageQueueOffsets = stoppingMessageQueueOffsets;
+        this.startingOffsetsStrategy = startingOffsetsStrategy;
+        this.stoppingOffsetsStrategy = stoppingOffsetsStrategy;
         this.boundedness = boundedness;
         this.deserializationSchema = deserializationSchema;
         this.sourceConfiguration = sourceConfiguration;
@@ -153,8 +153,8 @@ public class RocketMQSource<OUT>
 
         return new RocketMQSourceEnumerator(
                 consumer,
-                startingMessageQueueOffsets,
-                stoppingMessageQueueOffsets,
+                startingOffsetsStrategy,
+                stoppingOffsetsStrategy,
                 sourceConfiguration,
                 enumContext);
     }
@@ -165,8 +165,8 @@ public class RocketMQSource<OUT>
             RocketMQSourceEnumState checkpoint) {
 
          return new RocketMQSourceEnumerator(consumer,
-                 startingMessageQueueOffsets,
-                 stoppingMessageQueueOffsets,
+                 startingOffsetsStrategy,
+                 stoppingOffsetsStrategy,
                  sourceConfiguration,
                  enumContext,
                  checkpoint.getCurrentSplitAssignment());

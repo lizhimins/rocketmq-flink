@@ -68,7 +68,7 @@ public class SimpleAdmin implements Closeable {
                             4, 2, PermName.PERM_READ | PermName.PERM_WRITE));
 
             adminExt.createAndUpdateTopicConfig(brokerAddress,
-                    new TopicConfig(ConnectorExampleNew.SOURCE_TOPIC_1,
+                    new TopicConfig(ConnectorExampleNew.SOURCE_TOPIC_2,
                             2, 2, PermName.PERM_READ | PermName.PERM_WRITE));
 
             log.info("recreate topic success, brokerAddress={}", brokerAddress);

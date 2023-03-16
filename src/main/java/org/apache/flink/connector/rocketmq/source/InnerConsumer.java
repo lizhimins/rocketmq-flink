@@ -18,6 +18,7 @@
 package org.apache.flink.connector.rocketmq.source;
 
 import org.apache.flink.connector.rocketmq.source.reader.MessageView;
+import org.apache.rocketmq.client.exception.MQClientException;
 import org.apache.rocketmq.common.message.MessageQueue;
 
 import java.time.Duration;
@@ -26,6 +27,11 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 public interface InnerConsumer extends AutoCloseable {
+
+    /**
+     * start inner consumer
+     */
+    void start() throws MQClientException;
 
     /**
      * Get the consumer group of the consumer.
@@ -38,7 +44,7 @@ public interface InnerConsumer extends AutoCloseable {
      * @param topic topic list
      * @return key is topic, values are message queue collections
      */
-    CompletableFuture<Collection<MessageQueue>> fetchMessageQueues(String topic);
+    CompletableFuture<Collection<MessageQueue>> fetchMessageQueues(String topic) throws MQClientException;
 
     /**
      * Manually assign a list of message queues to this consumer. This interface does not allow for incremental

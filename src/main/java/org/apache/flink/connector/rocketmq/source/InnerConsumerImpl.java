@@ -17,21 +17,21 @@
 
 package org.apache.flink.connector.rocketmq.source;
 
-import com.google.common.collect.Sets;
 import org.apache.flink.annotation.VisibleForTesting;
 import org.apache.flink.connector.rocketmq.source.config.SourceConfiguration;
-import org.apache.flink.connector.rocketmq.source.enumerator.initializer.MessageQueueOffsets;
+import org.apache.flink.connector.rocketmq.source.enumerator.initializer.OffsetsStrategy;
 import org.apache.flink.connector.rocketmq.source.reader.MessageView;
 import org.apache.flink.util.StringUtils;
 import org.apache.rocketmq.acl.common.AclClientRPCHook;
 import org.apache.rocketmq.acl.common.SessionCredentials;
 import org.apache.rocketmq.client.consumer.DefaultLitePullConsumer;
+import org.apache.rocketmq.client.exception.MQClientException;
+import org.apache.rocketmq.client.impl.consumer.DefaultLitePullConsumerImpl;
 import org.apache.rocketmq.common.message.MessageQueue;
-import org.apache.rocketmq.common.protocol.route.TopicRouteData;
 
+import java.lang.management.ManagementFactory;
 import java.time.Duration;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -39,78 +39,57 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class InnerConsumerImpl implements InnerConsumer {
 
-    private DefaultLitePullConsumer consumer;
+    private SourceConfiguration sourceConfiguration;
 
-    public void init() {
-        consumer.poll();
-    }
+    private DefaultLitePullConsumerImpl pullConsumer;
+
+    private final DefaultLitePullConsumer consumer;
 
     public InnerConsumerImpl(SourceConfiguration sourceConfiguration) {
+
+        this.sourceConfiguration = sourceConfiguration;
+
         String accessKey = sourceConfiguration.getString(RocketMQSourceOptions.OPTIONAL_ACCESS_KEY);
         String secretKey = sourceConfiguration.getString(RocketMQSourceOptions.OPTIONAL_SECRET_KEY);
         if (!StringUtils.isNullOrWhitespaceOnly(accessKey)
                 && !StringUtils.isNullOrWhitespaceOnly(secretKey)) {
-            AclClientRPCHook aclClientRPCHook =
+            AclClientRPCHook aclClientRpcHook =
                     new AclClientRPCHook(new SessionCredentials(accessKey, secretKey));
+            this.consumer = new DefaultLitePullConsumer(aclClientRpcHook);
+        } else {
+            this.consumer = new DefaultLitePullConsumer();
         }
 
-        //try {
-        //    if (org.apache.commons.lang3.StringUtils.isNotBlank(accessKey)
-        //            && org.apache.commons.lang3.StringUtils.isNotBlank(secretKey)) {
-        //        AclClientRPCHook aclClientRPCHook =
-        //                new AclClientRPCHook(new SessionCredentials(accessKey, secretKey));
-        //        consumer = new DefaultLitePullConsumer(consumerGroup, aclClientRPCHook);
-        //    } else {
-        //        consumer = new DefaultLitePullConsumer(consumerGroup);
-        //    }
-        //    consumer.setNamesrvAddr(nameServerAddress);
-        //    consumer.setInstanceName(
-        //            String.join(
-        //                    "||",
-        //                    ManagementFactory.getRuntimeMXBean().getName(),
-        //                    topic,
-        //                    consumerGroup,
-        //                    "" + System.nanoTime()));
-        //    consumer.start();
-        //    if (org.apache.commons.lang3.StringUtils.isNotEmpty(sql)) {
-        //        consumer.subscribe(topic, MessageSelector.bySql(sql));
-        //    } else {
-        //        consumer.subscribe(topic, tag);
-        //    }
-        //} catch (MQClientException e) {
-        //    LOG.error("Failed to initial RocketMQ consumer.", e);
-        //    consumer.shutdown();
-        //}
+        this.consumer.setNamesrvAddr(sourceConfiguration.getEndpoints());
+        this.consumer.setConsumerGroup(sourceConfiguration.getConsumerGroup());
+        this.consumer.setVipChannelEnabled(false);
+        this.consumer.setInstanceName(String.join("||", ManagementFactory.getRuntimeMXBean().getName(),
+                sourceConfiguration.getConsumerGroup(), Long.toString(System.nanoTime())));
     }
 
-    public CompletableFuture<Map<String, TopicRouteData>> getTopicRoute(List<String> topicList) {
-        return null;
+    @Override
+    public void start() throws MQClientException {
+        this.consumer.start();
+    }
+
+    @Override
+    public void close() throws Exception {
+        this.consumer.shutdown();
     }
 
     @Override
     public String getConsumerGroup() {
-        return null;
+        return this.sourceConfiguration.getConsumerGroup();
     }
 
     @Override
-    public CompletableFuture<Collection<MessageQueue>> fetchMessageQueues(String topic) {
-
-        MessageQueue messageQueue =
-                new MessageQueue("flink-source-1", "xieyang-broker-1", 2);
-
-        return CompletableFuture.completedFuture(Sets.newHashSet(messageQueue));
-
-        //Set<MessageQueue> currentQueueSet = topicRouteDataMap.entrySet().stream()
-        //        .flatMap(entry -> MQClientInstance.topicRouteData2TopicSubscribeInfo(
-        //                entry.getKey(), entry.getValue()).stream())
-        //        .collect(Collectors.toSet());
-        //return null;
+    public CompletableFuture<Collection<MessageQueue>> fetchMessageQueues(String topic) throws MQClientException {
+        return CompletableFuture.completedFuture(consumer.fetchMessageQueues(topic));
     }
-
 
     @Override
     public void assign(Collection<MessageQueue> messageQueues) {
-
+        this.consumer.assign(messageQueues);
     }
 
     @Override
@@ -205,17 +184,12 @@ public class InnerConsumerImpl implements InnerConsumer {
         return null;
     }
 
-    @Override
-    public void close() throws Exception {
-
-    }
-
     /**
      * The implementation for offsets retriever with a consumer and an admin client.
      */
     @VisibleForTesting
     public static class RemotingOffsetsRetrieverImpl
-            implements MessageQueueOffsets.MessageQueueOffsetsRetriever, AutoCloseable {
+            implements OffsetsStrategy.MessageQueueOffsetsRetriever, AutoCloseable {
 
         private final InnerConsumer innerConsumer;
 
@@ -237,12 +211,12 @@ public class InnerConsumerImpl implements InnerConsumer {
 
         @Override
         public Map<MessageQueue, Long> minOffsets(Collection<MessageQueue> messageQueues) {
-            return null;
+            return new ConcurrentHashMap<>();
         }
 
         @Override
         public Map<MessageQueue, Long> maxOffsets(Collection<MessageQueue> messageQueues) {
-            return null;
+            return new ConcurrentHashMap<>();
         }
 
         @Override

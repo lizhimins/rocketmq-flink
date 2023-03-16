@@ -30,16 +30,12 @@ public class SourceConfiguration extends RocketMQConfiguration {
 
     private static final String TOPIC_LIST_SEPARATE = ";";
 
+    private final String endpoints;
     private final Set<String> topicSet;
-
     private final String consumerGroup;
-
     private final boolean commitOffsetsOnCheckpoint;
-
     private final long partitionDiscoveryIntervalMs;
-
     private final Boundedness boundedness;
-
     private final Duration pollTimeout;
 
     //private final int messageQueueCapacity;
@@ -62,6 +58,7 @@ public class SourceConfiguration extends RocketMQConfiguration {
     public SourceConfiguration(Configuration config) {
         super(config);
 
+        this.endpoints = config.getString(RocketMQSourceOptions.ENDPOINTS);
         this.topicSet = Sets.newHashSet(config.getString(RocketMQSourceOptions.TOPIC).split(TOPIC_LIST_SEPARATE));
         this.consumerGroup = config.getString(RocketMQSourceOptions.CONSUMER_GROUP);
         this.partitionDiscoveryIntervalMs = config.getLong(RocketMQSourceOptions.PARTITION_DISCOVERY_INTERVAL_MS);
@@ -79,6 +76,10 @@ public class SourceConfiguration extends RocketMQConfiguration {
         //this.verifyInitialOffsets = null;
         //this.subscriptionName = null;
         //this.allowKeySharedOutOfOrderDelivery = false;
+    }
+
+    public String getEndpoints() {
+        return endpoints;
     }
 
     public Set<String> getTopicSet() {

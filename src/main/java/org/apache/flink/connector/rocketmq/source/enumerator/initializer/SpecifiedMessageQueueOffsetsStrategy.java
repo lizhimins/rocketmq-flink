@@ -28,13 +28,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
-public class SpecifiedMessageQueueMessageQueueOffsets
-        implements MessageQueueOffsets, MessageQueueOffsetsValidator {
+public class SpecifiedMessageQueueOffsetsStrategy
+        implements OffsetsStrategy, MessageQueueOffsetsValidator {
     private static final long serialVersionUID = 1649702397250402877L;
     private final Map<MessageQueue, Long> initialOffsets;
     private final OffsetResetStrategy offsetResetStrategy;
 
-    SpecifiedMessageQueueMessageQueueOffsets(
+    SpecifiedMessageQueueOffsetsStrategy(
             Map<MessageQueue, Long> initialOffsets, OffsetResetStrategy offsetResetStrategy) {
         this.initialOffsets = Collections.unmodifiableMap(initialOffsets);
         this.offsetResetStrategy = offsetResetStrategy;

@@ -19,6 +19,7 @@ package org.apache.flink.connector.rocketmq.source.enumerator.allocate;
 
 import org.apache.flink.connector.rocketmq.source.enumerator.RocketMQSourceEnumerator;
 import org.apache.flink.connector.rocketmq.source.split.RocketMQPartitionSplit;
+import org.apache.rocketmq.common.message.MessageQueue;
 
 import java.util.Map;
 import java.util.Set;

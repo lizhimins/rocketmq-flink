@@ -5,7 +5,7 @@ import org.apache.flink.annotation.Internal;
 import java.util.Properties;
 
 /**
- * Interface for validating {@link MessageQueueOffsets} with properties from {@link
+ * Interface for validating {@link OffsetsStrategy} with properties from {@link
  * org.apache.flink.connector.kafka.source.KafkaSource}.
  */
 @Internal

@@ -19,10 +19,10 @@ package org.apache.flink.connector.rocketmq.source.enumerator.allocate;
 
 import org.apache.flink.annotation.VisibleForTesting;
 import org.apache.flink.connector.rocketmq.source.enumerator.RocketMQSourceEnumerator;
-import org.apache.flink.connector.rocketmq.source.split.RocketMQPartitionSplit;
+import org.apache.flink.connector.rocketmq.source.split.RocketMQSourceSplit;
 import org.apache.rocketmq.common.message.MessageQueue;
 
-import java.util.List;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -34,11 +34,16 @@ public class AllocateMergeStrategy implements AllocateStrategy {
     }
 
     @Override
-    public Map<Integer, Set<RocketMQPartitionSplit>> allocate(
-            Map<Integer, Set<RocketMQPartitionSplit>> currentAssignmentMap,
+    public Map<Integer, Set<RocketMQSourceSplit>> allocate(
+            Map<Integer, Set<RocketMQSourceSplit>> currentAssignmentMap,
             RocketMQSourceEnumerator.PartitionSplitChange partitionSplitChange, int parallelism) {
 
-        return null;
+        for (RocketMQSourceSplit split : partitionSplitChange.getIncreaseSplits()) {
+            int splitOwner = getSplitOwner(new MessageQueue(
+                    split.getTopic(), split.getBrokerName(), split.getQueueId()), parallelism);
+            currentAssignmentMap.computeIfAbsent(splitOwner, r -> new HashSet<>()).add(split);
+        }
+        return currentAssignmentMap;
     }
 
     /**
@@ -71,5 +76,4 @@ public class AllocateMergeStrategy implements AllocateStrategy {
         // start index
         return (startIndex + partition) % numReaders;
     }
-
 }

@@ -26,9 +26,9 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 
-/** The {@link SimpleVersionedSerializer serializer} for {@link RocketMQPartitionSplit}. */
+/** The {@link SimpleVersionedSerializer serializer} for {@link RocketMQSourceSplit}. */
 public class RocketMQPartitionSplitSerializer
-        implements SimpleVersionedSerializer<RocketMQPartitionSplit> {
+        implements SimpleVersionedSerializer<RocketMQSourceSplit> {
 
     private static final int SNAPSHOT_VERSION = 0;
     private static final int CURRENT_VERSION = 1;
@@ -39,21 +39,21 @@ public class RocketMQPartitionSplitSerializer
     }
 
     @Override
-    public byte[] serialize(RocketMQPartitionSplit split) throws IOException {
+    public byte[] serialize(RocketMQSourceSplit split) throws IOException {
         try (ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
                 DataOutputStream out = new DataOutputStream(byteArrayOutputStream)) {
-            out.writeUTF(split.getTopicName());
+            out.writeUTF(split.getTopic());
             out.writeUTF(split.getBrokerName());
-            out.writeInt(split.getPartitionId());
-            out.writeLong(split.getStartingOffset());
-            out.writeLong(split.getStoppingOffset());
+            out.writeInt(split.getQueueId());
+            out.writeLong(split.getMinOffset());
+            out.writeLong(split.getMaxOffset());
             out.flush();
             return byteArrayOutputStream.toByteArray();
         }
     }
 
     @Override
-    public RocketMQPartitionSplit deserialize(int version, byte[] serialized) throws IOException {
+    public RocketMQSourceSplit deserialize(int version, byte[] serialized) throws IOException {
         try (ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(serialized);
                 DataInputStream in = new DataInputStream(byteArrayInputStream)) {
             String topic = in.readUTF();
@@ -61,7 +61,7 @@ public class RocketMQPartitionSplitSerializer
             int partition = in.readInt();
             long offset = in.readLong();
             long timestamp = in.readLong();
-            return new RocketMQPartitionSplit(topic, broker, partition, offset, timestamp);
+            return new RocketMQSourceSplit(topic, broker, partition, offset, timestamp);
         }
     }
 }

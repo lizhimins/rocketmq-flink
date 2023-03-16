@@ -18,8 +18,7 @@
 package org.apache.flink.connector.rocketmq.source.enumerator.allocate;
 
 import org.apache.flink.connector.rocketmq.source.enumerator.RocketMQSourceEnumerator;
-import org.apache.flink.connector.rocketmq.source.split.RocketMQPartitionSplit;
-import org.apache.rocketmq.common.message.MessageQueue;
+import org.apache.flink.connector.rocketmq.source.split.RocketMQSourceSplit;
 
 import java.util.Map;
 import java.util.Set;
@@ -44,8 +43,8 @@ public interface AllocateStrategy {
      * @param parallelism          the number of reader
      * @return latest assign message queue to reader map
      */
-    Map<Integer, Set<RocketMQPartitionSplit>> allocate(
-            final Map<Integer, Set<RocketMQPartitionSplit>> currentAssignmentMap,
+    Map<Integer, Set<RocketMQSourceSplit>> allocate(
+            final Map<Integer, Set<RocketMQSourceSplit>> currentAssignmentMap,
             final RocketMQSourceEnumerator.PartitionSplitChange partitionSplitChange,
             final int parallelism);
 }

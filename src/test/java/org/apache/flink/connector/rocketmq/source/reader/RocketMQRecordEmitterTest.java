@@ -51,14 +51,14 @@ public class RocketMQRecordEmitterTest {
         //// Tuple3<RowData, Long, Long> record =
         ////        new Tuple3<>(rowData, 100L, System.currentTimeMillis());
         //
-        //RocketMQPartitionSplitState partitionSplitState =
-        //        new RocketMQPartitionSplitState(
-        //                new RocketMQPartitionSplit(
+        //RocketMQSourceSplitState partitionSplitState =
+        //        new RocketMQSourceSplitState(
+        //                new RocketMQSourceSplit(
         //                        topic, broker, partition, startingOffset, stoppingTimestamp));
         //// recordEmitter.emitRecord(record, new TestingEmitterOutput<>(), partitionSplitState);
         //recordEmitter.emitRecord(null, new TestingEmitterOutput<>(), partitionSplitState);
         //assertEquals(
-        //        new RocketMQPartitionSplit(
+        //        new RocketMQSourceSplit(
         //                topic, broker, partition, startingOffset + 1, stoppingTimestamp),
         //        partitionSplitState.toRocketMQPartitionSplit());
     }

@@ -18,6 +18,7 @@
 package org.apache.flink.connector.rocketmq.source.enumerator.initializer;
 
 import org.apache.flink.connector.rocketmq.legacy.common.config.OffsetResetStrategy;
+import org.apache.flink.connector.rocketmq.source.InnerConsumer;
 import org.apache.rocketmq.common.consumer.ConsumeFromWhere;
 import org.apache.rocketmq.common.message.MessageQueue;
 
@@ -26,13 +27,13 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
-public class ReaderHandledMessageQueueOffsetsStrategy
-        implements OffsetsStrategy, MessageQueueOffsetsValidator {
+public class OffsetsSelectorByStrategy
+        implements OffsetsSelector, OffsetsValidator {
 
     private final ConsumeFromWhere consumeFromWhere;
     private final OffsetResetStrategy offsetResetStrategy;
 
-    ReaderHandledMessageQueueOffsetsStrategy(
+    OffsetsSelectorByStrategy(
             ConsumeFromWhere consumeFromWhere, OffsetResetStrategy offsetResetStrategy) {
         this.consumeFromWhere = consumeFromWhere;
         this.offsetResetStrategy = offsetResetStrategy;
@@ -41,13 +42,16 @@ public class ReaderHandledMessageQueueOffsetsStrategy
     @Override
     public Map<MessageQueue, Long> getMessageQueueOffsets(
             Collection<MessageQueue> partitions,
-            MessageQueueOffsetsRetriever messageQueueOffsetsRetriever) {
+            MessageQueueOffsetsRetriever offsetsRetriever) {
 
-        Map<MessageQueue, Long> initialOffsets = new HashMap<>();
-        for (MessageQueue tp : partitions) {
-            initialOffsets.put(tp, -1L);
+        switch (consumeFromWhere) {
+            case CONSUME_FROM_FIRST_OFFSET:
+                return offsetsRetriever.minOffsets(partitions);
+            case CONSUME_FROM_LAST_OFFSET:
+                return offsetsRetriever.maxOffsets(partitions);
+            default:
+                return offsetsRetriever.committedOffsets(partitions);
         }
-        return initialOffsets;
     }
 
     @Override

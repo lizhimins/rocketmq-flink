@@ -19,20 +19,14 @@
 package org.apache.flink.connector.rocketmq.source.enumerator;
 
 import org.apache.flink.connector.base.source.utils.SerdeUtils;
-import org.apache.flink.connector.rocketmq.source.split.RocketMQPartitionSplit;
+import org.apache.flink.connector.rocketmq.source.split.RocketMQSourceSplit;
 import org.apache.flink.connector.rocketmq.source.split.RocketMQPartitionSplitSerializer;
 import org.apache.flink.core.io.SimpleVersionedSerializer;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.BiConsumer;
-import java.util.function.Consumer;
 
 /**
  * The {@link SimpleVersionedSerializer Serializer} for the enumerator state of RocketMQ source.
@@ -57,7 +51,7 @@ public class RocketMQSourceEnumStateSerializer
     public RocketMQSourceEnumState deserialize(int version, byte[] serialized) throws IOException {
         // Check whether the version of serialized bytes is supported.
         if (version == getVersion()) {
-            Map<Integer, Set<RocketMQPartitionSplit>> currentPartitionAssignment =
+            Map<Integer, Set<RocketMQSourceSplit>> currentPartitionAssignment =
                     SerdeUtils.deserializeSplitAssignments(
                             serialized, new RocketMQPartitionSplitSerializer(), HashSet::new);
             return new RocketMQSourceEnumState(currentPartitionAssignment);

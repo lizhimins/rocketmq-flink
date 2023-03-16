@@ -21,90 +21,85 @@ package org.apache.flink.connector.rocketmq.source.split;
 import org.apache.flink.api.connector.source.SourceSplit;
 import org.apache.rocketmq.common.message.MessageQueue;
 
+import java.beans.Transient;
 import java.util.Objects;
 
 /**
  * A {@link SourceSplit} for a RocketMQ partition.
  */
-public class RocketMQPartitionSplit implements SourceSplit {
+public class RocketMQSourceSplit implements SourceSplit {
 
     public static final long NO_STOPPING_OFFSET = Long.MAX_VALUE;
 
-    private final String topicName;
+    private final String topic;
     private final String brokerName;
-    private final int partitionId;
-    private final long startingOffset;
-    private final long stoppingOffset;
+    private final int queueId;
+    private final long minOffset;
+    private final long maxOffset;
 
-    public RocketMQPartitionSplit(
-            MessageQueue messageQueue, long startingOffset, long stoppingTimestamp) {
-        this.topicName = messageQueue.getTopic();
+    public RocketMQSourceSplit(MessageQueue messageQueue, long minOffset, long stoppingTimestamp) {
+        this.topic = messageQueue.getTopic();
         this.brokerName = messageQueue.getBrokerName();
-        this.partitionId = messageQueue.getQueueId();
-        this.startingOffset = startingOffset;
-        this.stoppingOffset = stoppingTimestamp;
+        this.queueId = messageQueue.getQueueId();
+        this.minOffset = minOffset;
+        this.maxOffset = stoppingTimestamp;
     }
 
-    public RocketMQPartitionSplit(
-            String topicName,
-            String brokerName,
-            int partitionId,
-            long startingOffset,
-            long stoppingOffset) {
-        this.topicName = topicName;
+    public RocketMQSourceSplit(String topic, String brokerName, int queueId, long minOffset, long maxOffset) {
+        this.topic = topic;
         this.brokerName = brokerName;
-        this.partitionId = partitionId;
-        this.startingOffset = startingOffset;
-        this.stoppingOffset = stoppingOffset;
+        this.queueId = queueId;
+        this.minOffset = minOffset;
+        this.maxOffset = maxOffset;
     }
 
-    public String getTopicName() {
-        return topicName;
+    public String getTopic() {
+        return topic;
     }
 
     public String getBrokerName() {
         return brokerName;
     }
 
-    public int getPartitionId() {
-        return partitionId;
+    public int getQueueId() {
+        return queueId;
     }
 
-    public long getStartingOffset() {
-        return startingOffset;
+    public long getMinOffset() {
+        return minOffset;
     }
 
-    public long getStoppingOffset() {
-        return stoppingOffset;
+    public long getMaxOffset() {
+        return maxOffset;
     }
 
     @Override
     public String splitId() {
-        return topicName + "-" + brokerName + "-" + partitionId;
+        return topic + "-" + brokerName + "-" + queueId;
     }
 
     @Override
     public String toString() {
         return String.format(
                 "[TopicName: %s, BrokerName: %s, PartitionId: %s, StartingOffset: %d, StoppingOffset: %d]",
-                topicName, brokerName, partitionId, startingOffset, stoppingOffset);
+                topic, brokerName, queueId, minOffset, maxOffset);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(topicName, brokerName, partitionId, startingOffset, stoppingOffset);
+        return Objects.hash(topic, brokerName, queueId, minOffset, maxOffset);
     }
 
     @Override
     public boolean equals(Object obj) {
-        if (!(obj instanceof RocketMQPartitionSplit)) {
+        if (!(obj instanceof RocketMQSourceSplit)) {
             return false;
         }
-        RocketMQPartitionSplit other = (RocketMQPartitionSplit) obj;
-        return topicName.equals(other.topicName)
+        RocketMQSourceSplit other = (RocketMQSourceSplit) obj;
+        return topic.equals(other.topic)
                 && brokerName.equals(other.brokerName)
-                && partitionId == other.partitionId
-                && startingOffset == other.startingOffset
-                && stoppingOffset == other.stoppingOffset;
+                && queueId == other.queueId
+                && minOffset == other.minOffset
+                && maxOffset == other.maxOffset;
     }
 }

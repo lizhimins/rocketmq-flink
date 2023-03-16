@@ -20,17 +20,17 @@ package org.apache.flink.connector.rocketmq.source.reader;
 
 import org.apache.flink.api.connector.source.SourceOutput;
 import org.apache.flink.connector.base.source.reader.RecordEmitter;
-import org.apache.flink.connector.rocketmq.source.split.RocketMQPartitionSplitState;
+import org.apache.flink.connector.rocketmq.source.split.RocketMQSourceSplitState;
 
 /** The {@link RecordEmitter} implementation for {@link RocketMQSourceReader}. */
 public class RocketMQRecordEmitter<T>
-        implements RecordEmitter<MessageView, T, RocketMQPartitionSplitState> {
+        implements RecordEmitter<MessageView, T, RocketMQSourceSplitState> {
 
     @Override
     public void emitRecord(
             MessageView element,
             SourceOutput<T> output,
-            RocketMQPartitionSplitState splitState) {
+            RocketMQSourceSplitState splitState) {
 
         // output.collect(element.f0, element.f2);
         // splitState.setCurrentOffset(element.f1 + 1);

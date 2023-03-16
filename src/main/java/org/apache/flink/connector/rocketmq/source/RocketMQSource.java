@@ -34,14 +34,14 @@ import org.apache.flink.connector.rocketmq.source.config.SourceConfiguration;
 import org.apache.flink.connector.rocketmq.source.enumerator.RocketMQSourceEnumState;
 import org.apache.flink.connector.rocketmq.source.enumerator.RocketMQSourceEnumStateSerializer;
 import org.apache.flink.connector.rocketmq.source.enumerator.RocketMQSourceEnumerator;
-import org.apache.flink.connector.rocketmq.source.enumerator.initializer.OffsetsStrategy;
+import org.apache.flink.connector.rocketmq.source.enumerator.initializer.OffsetsSelector;
 import org.apache.flink.connector.rocketmq.source.metrics.RocketMQSourceReaderMetrics;
 import org.apache.flink.connector.rocketmq.source.reader.RocketMQSplitReader;
 import org.apache.flink.connector.rocketmq.source.reader.RocketMQRecordEmitter;
 import org.apache.flink.connector.rocketmq.source.reader.RocketMQSourceReader;
 import org.apache.flink.connector.rocketmq.source.reader.MessageView;
 import org.apache.flink.connector.rocketmq.source.reader.deserializer.RocketMQDeserializationSchema;
-import org.apache.flink.connector.rocketmq.source.split.RocketMQPartitionSplit;
+import org.apache.flink.connector.rocketmq.source.split.RocketMQSourceSplit;
 import org.apache.flink.connector.rocketmq.source.split.RocketMQPartitionSplitSerializer;
 import org.apache.flink.core.io.SimpleVersionedSerializer;
 import org.apache.flink.metrics.MetricGroup;
@@ -54,7 +54,7 @@ import java.util.function.Supplier;
 
 /** The Source implementation of RocketMQ. */
 public class RocketMQSource<OUT>
-        implements Source<OUT, RocketMQPartitionSplit, RocketMQSourceEnumState>,
+        implements Source<OUT, RocketMQSourceSplit, RocketMQSourceEnumState>,
                 ResultTypeQueryable<OUT> {
 
     private static final long serialVersionUID = -1L;
@@ -64,8 +64,8 @@ public class RocketMQSource<OUT>
     private final InnerConsumer consumer;
 
     // Users can specify the starting / stopping offset initializer.
-    private final OffsetsStrategy startingOffsetsStrategy;
-    private final OffsetsStrategy stoppingOffsetsStrategy;
+    private final OffsetsSelector startingOffsetsSelector;
+    private final OffsetsSelector stoppingOffsetsSelector;
 
     // The configurations.
     private final SourceConfiguration sourceConfiguration;
@@ -78,14 +78,14 @@ public class RocketMQSource<OUT>
 
     public RocketMQSource(
             InnerConsumer consumer,
-            OffsetsStrategy startingOffsetsStrategy,
-            OffsetsStrategy stoppingOffsetsStrategy,
+            OffsetsSelector startingOffsetsSelector,
+            OffsetsSelector stoppingOffsetsSelector,
             Boundedness boundedness,
             RocketMQDeserializationSchema<OUT> deserializationSchema,
             SourceConfiguration sourceConfiguration) {
         this.consumer = consumer;
-        this.startingOffsetsStrategy = startingOffsetsStrategy;
-        this.stoppingOffsetsStrategy = stoppingOffsetsStrategy;
+        this.startingOffsetsSelector = startingOffsetsSelector;
+        this.stoppingOffsetsSelector = stoppingOffsetsSelector;
         this.boundedness = boundedness;
         this.deserializationSchema = deserializationSchema;
         this.sourceConfiguration = sourceConfiguration;
@@ -106,7 +106,7 @@ public class RocketMQSource<OUT>
     }
 
     @Override
-    public SourceReader<OUT, RocketMQPartitionSplit> createReader(SourceReaderContext readerContext)
+    public SourceReader<OUT, RocketMQSourceSplit> createReader(SourceReaderContext readerContext)
             throws Exception {
 
         FutureCompletingBlockingQueue<RecordsWithSplitIds<MessageView>> elementsQueue =
@@ -128,7 +128,7 @@ public class RocketMQSource<OUT>
         final RocketMQSourceReaderMetrics rocketMQSourceReaderMetrics =
                 new RocketMQSourceReaderMetrics(readerContext.metricGroup());
 
-        Supplier<SplitReader<MessageView, RocketMQPartitionSplit>> splitReaderSupplier =
+        Supplier<SplitReader<MessageView, RocketMQSourceSplit>> splitReaderSupplier =
                 () ->
                         new RocketMQSplitReader<>(
                                 sourceConfiguration,
@@ -148,32 +148,32 @@ public class RocketMQSource<OUT>
     }
 
     @Override
-    public SplitEnumerator<RocketMQPartitionSplit, RocketMQSourceEnumState> createEnumerator(
-            SplitEnumeratorContext<RocketMQPartitionSplit> enumContext) {
+    public SplitEnumerator<RocketMQSourceSplit, RocketMQSourceEnumState> createEnumerator(
+            SplitEnumeratorContext<RocketMQSourceSplit> enumContext) {
 
         return new RocketMQSourceEnumerator(
                 consumer,
-                startingOffsetsStrategy,
-                stoppingOffsetsStrategy,
+                startingOffsetsSelector,
+                stoppingOffsetsSelector,
                 sourceConfiguration,
                 enumContext);
     }
 
     @Override
-    public SplitEnumerator<RocketMQPartitionSplit, RocketMQSourceEnumState> restoreEnumerator(
-            SplitEnumeratorContext<RocketMQPartitionSplit> enumContext,
+    public SplitEnumerator<RocketMQSourceSplit, RocketMQSourceEnumState> restoreEnumerator(
+            SplitEnumeratorContext<RocketMQSourceSplit> enumContext,
             RocketMQSourceEnumState checkpoint) {
 
          return new RocketMQSourceEnumerator(consumer,
-                 startingOffsetsStrategy,
-                 stoppingOffsetsStrategy,
+                 startingOffsetsSelector,
+                 stoppingOffsetsSelector,
                  sourceConfiguration,
                  enumContext,
                  checkpoint.getCurrentSplitAssignment());
     }
 
     @Override
-    public SimpleVersionedSerializer<RocketMQPartitionSplit> getSplitSerializer() {
+    public SimpleVersionedSerializer<RocketMQSourceSplit> getSplitSerializer() {
         return new RocketMQPartitionSplitSerializer();
     }
 

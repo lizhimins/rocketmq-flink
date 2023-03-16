@@ -24,18 +24,18 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
-class TimestampOffsetsStrategy implements OffsetsStrategy {
+class OffsetsSelectorByTimestamp implements OffsetsSelector {
     private static final long serialVersionUID = 2932230571773627233L;
     private final long startingTimestamp;
 
-    TimestampOffsetsStrategy(long startingTimestamp) {
+    OffsetsSelectorByTimestamp(long startingTimestamp) {
         this.startingTimestamp = startingTimestamp;
     }
 
     @Override
     public Map<MessageQueue, Long> getMessageQueueOffsets(
             Collection<MessageQueue> partitions,
-            MessageQueueOffsetsRetriever messageQueueOffsetsRetriever) {
+            MessageQueueOffsetsRetriever offsetsRetriever) {
         Map<MessageQueue, Long> startingTimestamps = new HashMap<>();
         Map<MessageQueue, Long> initialOffsets = new HashMap<>();
 

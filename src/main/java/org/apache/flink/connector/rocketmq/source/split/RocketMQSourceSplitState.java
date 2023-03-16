@@ -18,19 +18,19 @@
 
 package org.apache.flink.connector.rocketmq.source.split;
 
-/** This class extends RocketMQPartitionSplit to track a mutable current offset. */
-public class RocketMQPartitionSplitState extends RocketMQPartitionSplit {
+/** This class extends RocketMQSourceSplit to track a mutable current offset. */
+public class RocketMQSourceSplitState extends RocketMQSourceSplit {
 
     private long currentOffset;
 
-    public RocketMQPartitionSplitState(RocketMQPartitionSplit partitionSplit) {
+    public RocketMQSourceSplitState(RocketMQSourceSplit partitionSplit) {
         super(
-                partitionSplit.getTopicName(),
+                partitionSplit.getTopic(),
                 partitionSplit.getBrokerName(),
-                partitionSplit.getPartitionId(),
-                partitionSplit.getStartingOffset(),
-                partitionSplit.getStoppingOffset());
-        this.currentOffset = partitionSplit.getStartingOffset();
+                partitionSplit.getQueueId(),
+                partitionSplit.getMinOffset(),
+                partitionSplit.getMaxOffset());
+        this.currentOffset = partitionSplit.getMinOffset();
     }
 
     public long getCurrentOffset() {
@@ -42,16 +42,16 @@ public class RocketMQPartitionSplitState extends RocketMQPartitionSplit {
     }
 
     /**
-     * Use the current offset as the starting offset to create a new RocketMQPartitionSplit.
+     * Use the current offset as the starting offset to create a new RocketMQSourceSplit.
      *
-     * @return a new RocketMQPartitionSplit which uses the current offset as its starting offset.
+     * @return a new RocketMQSourceSplit which uses the current offset as its starting offset.
      */
-    public RocketMQPartitionSplit toRocketMQPartitionSplit() {
-        return new RocketMQPartitionSplit(
-                getTopicName(),
+    public RocketMQSourceSplit toRocketMQPartitionSplit() {
+        return new RocketMQSourceSplit(
+                getTopic(),
                 getBrokerName(),
-                getPartitionId(),
+                getQueueId(),
                 getCurrentOffset(),
-                getStoppingOffset());
+                getMaxOffset());
     }
 }

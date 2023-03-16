@@ -28,13 +28,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
-public class SpecifiedMessageQueueOffsetsStrategy
-        implements OffsetsStrategy, MessageQueueOffsetsValidator {
+public class OffsetsSelectorBySpecified
+        implements OffsetsSelector, OffsetsValidator {
     private static final long serialVersionUID = 1649702397250402877L;
     private final Map<MessageQueue, Long> initialOffsets;
     private final OffsetResetStrategy offsetResetStrategy;
 
-    SpecifiedMessageQueueOffsetsStrategy(
+    OffsetsSelectorBySpecified(
             Map<MessageQueue, Long> initialOffsets, OffsetResetStrategy offsetResetStrategy) {
         this.initialOffsets = Collections.unmodifiableMap(initialOffsets);
         this.offsetResetStrategy = offsetResetStrategy;
@@ -43,7 +43,7 @@ public class SpecifiedMessageQueueOffsetsStrategy
     @Override
     public Map<MessageQueue, Long> getMessageQueueOffsets(
             Collection<MessageQueue> partitions,
-            MessageQueueOffsetsRetriever messageQueueOffsetsRetriever) {
+            MessageQueueOffsetsRetriever offsetsRetriever) {
         Map<MessageQueue, Long> offsets = new HashMap<>();
         List<MessageQueue> toLookup = new ArrayList<>();
         for (MessageQueue tp : partitions) {
@@ -57,16 +57,16 @@ public class SpecifiedMessageQueueOffsetsStrategy
         if (!toLookup.isEmpty()) {
             // First check the committed offsets.
             Map<MessageQueue, Long> committedOffsets =
-                    messageQueueOffsetsRetriever.committedOffsets(toLookup);
+                    offsetsRetriever.committedOffsets(toLookup);
             offsets.putAll(committedOffsets);
             toLookup.removeAll(committedOffsets.keySet());
 
             switch (offsetResetStrategy) {
                 case EARLIEST:
-                    offsets.putAll(messageQueueOffsetsRetriever.minOffsets(toLookup));
+                    offsets.putAll(offsetsRetriever.minOffsets(toLookup));
                     break;
                 case LATEST:
-                    offsets.putAll(messageQueueOffsetsRetriever.maxOffsets(toLookup));
+                    offsets.putAll(offsetsRetriever.maxOffsets(toLookup));
                     break;
                 default:
                     throw new IllegalStateException(

@@ -19,15 +19,18 @@ package org.apache.flink.connector.rocketmq.source;
 
 import org.apache.flink.annotation.VisibleForTesting;
 import org.apache.flink.connector.rocketmq.source.config.SourceConfiguration;
-import org.apache.flink.connector.rocketmq.source.enumerator.initializer.OffsetsStrategy;
+import org.apache.flink.connector.rocketmq.source.enumerator.initializer.OffsetsSelector;
 import org.apache.flink.connector.rocketmq.source.reader.MessageView;
 import org.apache.flink.util.StringUtils;
 import org.apache.rocketmq.acl.common.AclClientRPCHook;
 import org.apache.rocketmq.acl.common.SessionCredentials;
 import org.apache.rocketmq.client.consumer.DefaultLitePullConsumer;
+import org.apache.rocketmq.client.consumer.store.ReadOffsetType;
 import org.apache.rocketmq.client.exception.MQClientException;
-import org.apache.rocketmq.client.impl.consumer.DefaultLitePullConsumerImpl;
 import org.apache.rocketmq.common.message.MessageQueue;
+import org.apache.rocketmq.tools.admin.DefaultMQAdminExt;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.lang.management.ManagementFactory;
 import java.time.Duration;
@@ -36,27 +39,31 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 public class InnerConsumerImpl implements InnerConsumer {
 
-    private SourceConfiguration sourceConfiguration;
+    private static final Logger LOG = LoggerFactory.getLogger(InnerConsumerImpl.class);
 
-    private DefaultLitePullConsumerImpl pullConsumer;
-
+    private final SourceConfiguration sourceConfiguration;
+    private final DefaultMQAdminExt adminExt;
     private final DefaultLitePullConsumer consumer;
 
     public InnerConsumerImpl(SourceConfiguration sourceConfiguration) {
-
         this.sourceConfiguration = sourceConfiguration;
-
         String accessKey = sourceConfiguration.getString(RocketMQSourceOptions.OPTIONAL_ACCESS_KEY);
         String secretKey = sourceConfiguration.getString(RocketMQSourceOptions.OPTIONAL_SECRET_KEY);
+
         if (!StringUtils.isNullOrWhitespaceOnly(accessKey)
                 && !StringUtils.isNullOrWhitespaceOnly(secretKey)) {
             AclClientRPCHook aclClientRpcHook =
                     new AclClientRPCHook(new SessionCredentials(accessKey, secretKey));
+            this.adminExt = new DefaultMQAdminExt(aclClientRpcHook);
             this.consumer = new DefaultLitePullConsumer(aclClientRpcHook);
         } else {
+            this.adminExt = new DefaultMQAdminExt();
             this.consumer = new DefaultLitePullConsumer();
         }
 
@@ -65,15 +72,21 @@ public class InnerConsumerImpl implements InnerConsumer {
         this.consumer.setVipChannelEnabled(false);
         this.consumer.setInstanceName(String.join("||", ManagementFactory.getRuntimeMXBean().getName(),
                 sourceConfiguration.getConsumerGroup(), Long.toString(System.nanoTime())));
+
+        this.adminExt.setNamesrvAddr(sourceConfiguration.getEndpoints());
+        this.adminExt.setAdminExtGroup(sourceConfiguration.getConsumerGroup());
+        this.adminExt.setVipChannelEnabled(false);
     }
 
     @Override
     public void start() throws MQClientException {
+        this.adminExt.start();
         this.consumer.start();
     }
 
     @Override
     public void close() throws Exception {
+        this.adminExt.shutdown();
         this.consumer.shutdown();
     }
 
@@ -119,64 +132,44 @@ public class InnerConsumerImpl implements InnerConsumer {
 
     @Override
     public CompletableFuture<Long> seekCommittedOffset(MessageQueue messageQueue) {
-        //Map<MessageQueue, Long> offsetMap = new ConcurrentHashMap<>();
-        //OffsetStore offsetStore = consumer.getOffsetStore();
-        //for (MessageQueue messageQueue : messageQueues) {
-        //    long offset = RetryUtil.call(
-        //            () -> offsetStore.readOffset(messageQueue, ReadOffsetType.READ_FROM_STORE),
-        //            "fetch offset from broker failed");
-        //    offsetMap.put(messageQueue, offset);
-        //}
-        //return offsetMap;
-        return null;
+        return CompletableFuture.supplyAsync(() ->
+                consumer.getOffsetStore().readOffset(messageQueue, ReadOffsetType.READ_FROM_STORE));
     }
 
     @Override
     public CompletableFuture<Long> seekMinOffset(MessageQueue messageQueue) {
-        //Map<MessageQueue, Long> offsetMap = new ConcurrentHashMap<>();
-        //for (MessageQueue messageQueue : messageQueues) {
-        //    try {
-        //        long offset = this.adminExt.minOffset(messageQueue);
-        //        offsetMap.put(messageQueue, offset);
-        //    } catch (MQClientException e) {
-        //        throw new RuntimeException(e);
-        //    }
-        //}
-        //return offsetMap;
-        return null;
+        return CompletableFuture.supplyAsync(() -> {
+            try {
+                return adminExt.minOffset(messageQueue);
+            } catch (MQClientException e) {
+                LOG.error("seek min offset error", e);
+                throw new RuntimeException(e);
+            }
+        });
     }
 
     @Override
     public CompletableFuture<Long> seekMaxOffset(MessageQueue messageQueue) {
-        //Map<MessageQueue, Long> offsetMap = new ConcurrentHashMap<>();
-        //for (MessageQueue messageQueue : messageQueues) {
-        //    try {
-        //        long offset = this.adminExt.maxOffset(messageQueue);
-        //        offsetMap.put(messageQueue, offset);
-        //    } catch (MQClientException e) {
-        //        throw new RuntimeException(e);
-        //    }
-        //}
-        //return offsetMap;
-        return null;
+        return CompletableFuture.supplyAsync(() -> {
+            try {
+                return adminExt.maxOffset(messageQueue);
+            } catch (MQClientException e) {
+                LOG.error("seek min offset error", e);
+                throw new RuntimeException(e);
+            }
+        });
     }
 
     @Override
     public CompletableFuture<Long> seekOffsetForTimestamp(MessageQueue messageQueue, long timestamp) {
-        //List<CompletableFuture<Long>> futureList = new ArrayList<>(messageQueueWithTimeMap.size());
-        //for (Map.Entry<MessageQueue, Long> entry : messageQueueWithTimeMap.entrySet()) {
-        //    CompletableFuture<Long> future = CompletableFuture.completedFuture(
-        //                    RetryUtil.call(() ->
-        //                                    adminExt.searchOffset(entry.getKey(), entry.getValue()),
-        //                            "failed to search offset by timestamp"))
-        //            .thenApply(aLong -> {
-        //                offsetMap.put(entry.getKey(), aLong);
-        //                return null;
-        //            });
-        //    futureList.add(future);
-        //}
-        //CompletableFuture.allOf(futureList.toArray(new CompletableFuture[0])).join();
-        return null;
+        return CompletableFuture.supplyAsync(() -> {
+            try {
+                return adminExt.searchOffset(messageQueue, timestamp);
+            } catch (MQClientException e) {
+                LOG.error("seek min offset error", e);
+                throw new RuntimeException(e);
+            }
+        });
     }
 
     @Override
@@ -189,7 +182,7 @@ public class InnerConsumerImpl implements InnerConsumer {
      */
     @VisibleForTesting
     public static class RemotingOffsetsRetrieverImpl
-            implements OffsetsStrategy.MessageQueueOffsetsRetriever, AutoCloseable {
+            implements OffsetsSelector.MessageQueueOffsetsRetriever, AutoCloseable {
 
         private final InnerConsumer innerConsumer;
 
@@ -211,7 +204,28 @@ public class InnerConsumerImpl implements InnerConsumer {
 
         @Override
         public Map<MessageQueue, Long> minOffsets(Collection<MessageQueue> messageQueues) {
-            return new ConcurrentHashMap<>();
+            Map<MessageQueue, Long> result = new ConcurrentHashMap<>();
+
+            List<CompletableFuture<Void>> futureList = messageQueues.stream()
+                    .map(messageQueue -> CompletableFuture.supplyAsync(new Supplier<CompletableFuture<Long>>() {
+                        @Override
+                        public CompletableFuture<Long> get() {
+                            return innerConsumer.seekMinOffset(messageQueue);
+                        }
+                    }).thenAcceptAsync(new Consumer<CompletableFuture<Long>>() {
+                        @Override
+                        public void accept(CompletableFuture<Long> future) {
+                            try {
+                                result.put(messageQueue, future.get());
+                            } catch (Exception e) {
+                                LOG.error("fetch min offset error", e);
+                            }
+                        }
+                    }))
+                    .collect(Collectors.toList());
+
+            CompletableFuture.allOf(futureList.toArray(new CompletableFuture[0])).join();
+            return result;
         }
 
         @Override

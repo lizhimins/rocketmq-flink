@@ -36,6 +36,7 @@ public class SourceConfiguration extends RocketMQConfiguration {
     private final boolean commitOffsetsOnCheckpoint;
     private final long partitionDiscoveryIntervalMs;
     private final Boundedness boundedness;
+    private final long rpcTimeout;
     private final Duration pollTimeout;
 
     //private final int messageQueueCapacity;
@@ -64,7 +65,8 @@ public class SourceConfiguration extends RocketMQConfiguration {
         this.partitionDiscoveryIntervalMs = config.getLong(RocketMQSourceOptions.PARTITION_DISCOVERY_INTERVAL_MS);
         this.commitOffsetsOnCheckpoint = true;
         this.boundedness = Boundedness.CONTINUOUS_UNBOUNDED;
-        this.pollTimeout = Duration.ofMillis(10 * 1000L);
+        this.rpcTimeout = 5 * 1000L;
+        this.pollTimeout = Duration.ofMillis(10);
 
         //this.messageQueueCapacity = 1;
         //this.partitionDiscoveryIntervalMs = 1;
@@ -112,5 +114,9 @@ public class SourceConfiguration extends RocketMQConfiguration {
 
     public Duration getPollTimeout() {
         return pollTimeout;
+    }
+
+    public long getRpcTimeout() {
+        return rpcTimeout;
     }
 }

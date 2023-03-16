@@ -26,8 +26,8 @@ import org.apache.flink.connector.base.source.reader.SingleThreadMultiplexSource
 import org.apache.flink.connector.base.source.reader.splitreader.SplitReader;
 import org.apache.flink.connector.base.source.reader.synchronization.FutureCompletingBlockingQueue;
 import org.apache.flink.connector.rocketmq.source.metrics.RocketMQSourceReaderMetrics;
-import org.apache.flink.connector.rocketmq.source.split.RocketMQPartitionSplit;
-import org.apache.flink.connector.rocketmq.source.split.RocketMQPartitionSplitState;
+import org.apache.flink.connector.rocketmq.source.split.RocketMQSourceSplit;
+import org.apache.flink.connector.rocketmq.source.split.RocketMQSourceSplitState;
 
 import java.util.Map;
 import java.util.function.Supplier;
@@ -35,14 +35,14 @@ import java.util.function.Supplier;
 /** The source reader for RocketMQ partitions. */
 public class RocketMQSourceReader<T>
         extends SingleThreadMultiplexSourceReaderBase<
-        MessageView, T, RocketMQPartitionSplit, RocketMQPartitionSplitState> {
+        MessageView, T, RocketMQSourceSplit, RocketMQSourceSplitState> {
 
     private final RocketMQSourceReaderMetrics rocketMQSourceReaderMetrics;
 
     public RocketMQSourceReader(
             FutureCompletingBlockingQueue<RecordsWithSplitIds<MessageView>> elementsQueue,
-            Supplier<SplitReader<MessageView, RocketMQPartitionSplit>> splitReaderSupplier,
-            RecordEmitter<MessageView, T, RocketMQPartitionSplitState> recordEmitter,
+            Supplier<SplitReader<MessageView, RocketMQSourceSplit>> splitReaderSupplier,
+            RecordEmitter<MessageView, T, RocketMQSourceSplitState> recordEmitter,
             Configuration config,
             SourceReaderContext context,
             RocketMQSourceReaderMetrics rocketMQSourceReaderMetrics) {
@@ -52,16 +52,16 @@ public class RocketMQSourceReader<T>
     }
 
     @Override
-    protected void onSplitFinished(Map<String, RocketMQPartitionSplitState> map) {}
+    protected void onSplitFinished(Map<String, RocketMQSourceSplitState> map) {}
 
     @Override
-    protected RocketMQPartitionSplitState initializedState(RocketMQPartitionSplit partitionSplit) {
-        return new RocketMQPartitionSplitState(partitionSplit);
+    protected RocketMQSourceSplitState initializedState(RocketMQSourceSplit partitionSplit) {
+        return new RocketMQSourceSplitState(partitionSplit);
     }
 
     @Override
-    protected RocketMQPartitionSplit toSplitType(
-            String splitId, RocketMQPartitionSplitState splitState) {
+    protected RocketMQSourceSplit toSplitType(
+            String splitId, RocketMQSourceSplitState splitState) {
         return splitState.toRocketMQPartitionSplit();
     }
 }

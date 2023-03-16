@@ -21,28 +21,24 @@ package org.apache.flink.connector.rocketmq.source.reader;
 import org.apache.flink.annotation.Internal;
 import org.apache.flink.api.connector.source.SourceReaderContext;
 import org.apache.flink.api.java.tuple.Tuple2;
-import org.apache.flink.api.java.tuple.Tuple3;
 import org.apache.flink.connector.base.source.reader.RecordsWithSplitIds;
 import org.apache.flink.connector.base.source.reader.splitreader.SplitReader;
 import org.apache.flink.connector.base.source.reader.splitreader.SplitsAddition;
 import org.apache.flink.connector.base.source.reader.splitreader.SplitsChange;
 import org.apache.flink.connector.rocketmq.source.InnerConsumer;
+import org.apache.flink.connector.rocketmq.source.InnerConsumerImpl;
 import org.apache.flink.connector.rocketmq.source.config.SourceConfiguration;
 import org.apache.flink.connector.rocketmq.source.metrics.RocketMQSourceReaderMetrics;
 import org.apache.flink.connector.rocketmq.source.reader.deserializer.RocketMQDeserializationSchema;
-import org.apache.flink.connector.rocketmq.source.split.RocketMQPartitionSplit;
-import org.apache.flink.util.Collector;
+import org.apache.flink.connector.rocketmq.source.split.RocketMQSourceSplit;
 import org.apache.flink.util.Preconditions;
-import org.apache.flink.util.StringUtils;
 import org.apache.rocketmq.client.exception.MQClientException;
-import org.apache.rocketmq.common.message.MessageExt;
 import org.apache.rocketmq.common.message.MessageQueue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
 import java.io.IOException;
-import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -52,7 +48,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.SortedMap;
-import java.util.StringJoiner;
 import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -64,7 +59,7 @@ import java.util.concurrent.ConcurrentMap;
  */
 @Internal
 public class RocketMQSplitReader<T>
-        implements SplitReader<MessageView, RocketMQPartitionSplit> {
+        implements SplitReader<MessageView, RocketMQSourceSplit> {
 
     private static final Logger LOG = LoggerFactory.getLogger(RocketMQSplitReader.class);
 
@@ -95,6 +90,14 @@ public class RocketMQSplitReader<T>
         this.deserializationSchema = deserializationSchema;
         this.offsetsToCommit = new TreeMap<>();
         this.currentOffsetTable = new ConcurrentHashMap<>();
+
+        try {
+            this.consumer = new InnerConsumerImpl(sourceConfiguration);
+            this.consumer.start();
+        } catch (MQClientException e) {
+            LOG.error("error", e);
+        }
+
         this.rocketmqSourceReaderMetrics = rocketmqSourceReaderMetrics;
         this.commitOffsetsOnCheckpoint = sourceConfiguration.isCommitOffsetsOnCheckpoint();
     }
@@ -119,7 +122,7 @@ public class RocketMQSplitReader<T>
     }
 
     @Override
-    public void handleSplitsChanges(SplitsChange<RocketMQPartitionSplit> splitsChange) {
+    public void handleSplitsChanges(SplitsChange<RocketMQSourceSplit> splitsChange) {
         // Current not support assign addition splits.
         if (!(splitsChange instanceof SplitsAddition)) {
             throw new UnsupportedOperationException(
@@ -137,14 +140,14 @@ public class RocketMQSplitReader<T>
                 .forEach(
                         split -> {
                             MessageQueue messageQueue = new MessageQueue(
-                                    split.getTopicName(), split.getBrokerName(), split.getPartitionId());
-                            currentOffsetTable.put(messageQueue,
-                                    new Tuple2<>(split.getStartingOffset(), split.getStoppingOffset()));
+                                    split.getTopic(), split.getBrokerName(), split.getQueueId());
+                            newOffsetTable.put(messageQueue, new Tuple2<>(split.getMinOffset(), split.getMaxOffset()));
                             rocketmqSourceReaderMetrics.registerNewMessageQueue(messageQueue);
                         });
 
         // todo: log message queue change
 
+        // It will replace the previous assignment
         consumer.assign(newOffsetTable.keySet());
 
         // set offset to consumer

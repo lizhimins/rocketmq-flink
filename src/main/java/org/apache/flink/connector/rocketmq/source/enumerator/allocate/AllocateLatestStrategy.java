@@ -18,7 +18,7 @@
 package org.apache.flink.connector.rocketmq.source.enumerator.allocate;
 
 import org.apache.flink.connector.rocketmq.source.enumerator.RocketMQSourceEnumerator;
-import org.apache.flink.connector.rocketmq.source.split.RocketMQPartitionSplit;
+import org.apache.flink.connector.rocketmq.source.split.RocketMQSourceSplit;
 
 import java.util.Map;
 import java.util.Set;
@@ -31,8 +31,8 @@ public class AllocateLatestStrategy implements AllocateStrategy {
     }
 
     @Override
-    public Map<Integer, Set<RocketMQPartitionSplit>> allocate(
-            Map<Integer, Set<RocketMQPartitionSplit>> currentAssignmentMap,
+    public Map<Integer, Set<RocketMQSourceSplit>> allocate(
+            Map<Integer, Set<RocketMQSourceSplit>> currentAssignmentMap,
             RocketMQSourceEnumerator.PartitionSplitChange partitionSplitChange, int parallelism) {
 
         // ignore current allocate

@@ -31,6 +31,7 @@ import org.apache.flink.connector.rocketmq.source.config.SourceConfiguration;
 import org.apache.flink.connector.rocketmq.source.metrics.RocketMQSourceReaderMetrics;
 import org.apache.flink.connector.rocketmq.source.reader.deserializer.RocketMQDeserializationSchema;
 import org.apache.flink.connector.rocketmq.source.split.RocketMQSourceSplit;
+import org.apache.flink.connector.rocketmq.source.util.UtilAll;
 import org.apache.flink.util.Preconditions;
 import org.apache.rocketmq.client.exception.MQClientException;
 import org.apache.rocketmq.common.message.MessageQueue;
@@ -95,7 +96,7 @@ public class RocketMQSplitReader<T>
             this.consumer = new InnerConsumerImpl(sourceConfiguration);
             this.consumer.start();
         } catch (MQClientException e) {
-            LOG.error("error", e);
+            LOG.error("Start rocketmq consumer for split reader error", e);
         }
 
         this.rocketmqSourceReaderMetrics = rocketmqSourceReaderMetrics;
@@ -111,13 +112,18 @@ public class RocketMQSplitReader<T>
     public RecordsWithSplitIds<MessageView> fetch() throws IOException {
         RocketMQRecordsWithSplitIds<MessageView> recordsWithSplitIds =
                 new RocketMQRecordsWithSplitIds<>(rocketmqSourceReaderMetrics);
-        List<MessageView> messageExtList = consumer.poll(sourceConfiguration.getPollTimeout());
-        for (MessageView messageView : messageExtList) {
-            String splitId = this.getSplitId(new MessageQueue(
-                    messageView.getTopic(), messageView.getBrokerName(), messageView.getQueueId()));
-            recordsWithSplitIds.recordsForSplit(splitId).add(messageView);
+        try {
+            List<MessageView> messageExtList = consumer.poll(sourceConfiguration.getPollTimeout());
+            for (MessageView messageView : messageExtList) {
+                String splitId = UtilAll.getSplitId(new MessageQueue(
+                        messageView.getTopic(), messageView.getBrokerName(), messageView.getQueueId()));
+                recordsWithSplitIds.recordsForSplit(splitId).add(messageView);
+                LOG.info("SplitId: {}, MessageId: {}", splitId, messageView.getMessageId());
+            }
+            recordsWithSplitIds.prepareForRead();
+        } catch (Exception e) {
+            LOG.error("pull message error", e);
         }
-        recordsWithSplitIds.prepareForRead();
         return recordsWithSplitIds;
     }
 
@@ -152,7 +158,11 @@ public class RocketMQSplitReader<T>
 
         // set offset to consumer
         for (Map.Entry<MessageQueue, Tuple2<Long, Long>> entry : newOffsetTable.entrySet()) {
-            consumer.seek(entry.getKey(), entry.getValue().f0);
+            try {
+                consumer.seek(entry.getKey(), entry.getValue().f0);
+            } catch (Exception e) {
+                LOG.error("consumer seek offset error, mq={}, offset={}", entry.getKey(), entry.getValue());
+            }
         }
     }
 
@@ -179,15 +189,11 @@ public class RocketMQSplitReader<T>
         }
     }
 
-    private String getSplitId(MessageQueue mq) {
-        return mq.getTopic() + "#" + mq.getBrokerName() + "#" + mq.getQueueId();
-    }
-
     private void finishSplitAtRecord(MessageQueue messageQueue, long currentOffset,
             RocketMQRecordsWithSplitIds<MessageView> recordsBySplits) {
 
         LOG.info("message queue {} has reached stopping offset {}", messageQueue, currentOffset);
-        recordsBySplits.addFinishedSplit(getSplitId(messageQueue));
+        //recordsBySplits.addFinishedSplit(getSplitId(messageQueue));
         this.currentOffsetTable.remove(messageQueue);
     }
 
@@ -214,15 +220,15 @@ public class RocketMQSplitReader<T>
          * return records container
          */
         private Collection<T> recordsForSplit(String splitId) {
-            return recordsBySplits.computeIfAbsent(splitId, id -> new ArrayList<>());
+            return this.recordsBySplits.computeIfAbsent(splitId, id -> new ArrayList<>());
         }
 
         private void addFinishedSplit(String splitId) {
-            finishedSplits.add(splitId);
+            this.finishedSplits.add(splitId);
         }
 
         private void prepareForRead() {
-            splitIterator = recordsBySplits.entrySet().iterator();
+            this.splitIterator = recordsBySplits.entrySet().iterator();
         }
 
         /**

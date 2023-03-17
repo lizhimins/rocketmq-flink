@@ -205,7 +205,7 @@ public class RocketMQSourceEnumerator
     }
 
     private Set<MessageQueue> initializeMessageQueueSplits() {
-        Set<MessageQueue> mqSet = sourceConfiguration.getTopicSet().stream()
+        return sourceConfiguration.getTopicSet().stream()
                 .flatMap(topic -> {
                     try {
                         return consumer.fetchMessageQueues(topic).get().stream();
@@ -216,9 +216,6 @@ public class RocketMQSourceEnumerator
                     return Stream.empty();
                 })
                 .collect(Collectors.toSet());
-
-        LOG.info("TopicRoute {}", mqSet.size());
-        return mqSet;
     }
 
     // This method should only be invoked in the coordinator executor thread.
@@ -242,7 +239,6 @@ public class RocketMQSourceEnumerator
     private PartitionSplitChange initializePartitionSplits(MessageQueueChange messageQueueChange) {
         Set<MessageQueue> increaseSet =
                 Collections.unmodifiableSet(messageQueueChange.getIncreaseSet());
-        LOG.info("initializePartitionSplits, {}", increaseSet);
 
         OffsetsSelector.MessageQueueOffsetsRetriever offsetsRetriever =
                 new InnerConsumerImpl.RemotingOffsetsRetrieverImpl(consumer);
@@ -255,6 +251,7 @@ public class RocketMQSourceEnumerator
             return new RocketMQSourceSplit(mq, startingOffset, stoppingOffset);
         }).collect(Collectors.toSet());
 
+        LOG.info("Initialize increase message queue offset, {}", increaseSet);
         return new PartitionSplitChange(increaseSplitSet, messageQueueChange.getDecreaseSet());
     }
 
@@ -272,7 +269,7 @@ public class RocketMQSourceEnumerator
         if (t != null) {
             throw new FlinkRuntimeException("Failed to initialize partition splits due to ", t);
         }
-        if (sourceConfiguration.isEnablePartitionDiscovery()) {
+        if (!sourceConfiguration.isEnablePartitionDiscovery()) {
             LOG.info("Partition discovery is disabled.");
         }
         handleSplitChangesLocal(partitionSplitChange);
@@ -314,15 +311,14 @@ public class RocketMQSourceEnumerator
             return;
         }
 
-        LOG.info("Assigning splits to readers {}", JSON.toJSONString(changedAssignmentMap, true));
+        LOG.info("Enumerator assigning split(s) to readers {}",
+                JSON.toJSONString(changedAssignmentMap, false));
+
         context.assignSplits(new SplitsAssignment<>(changedAssignmentMap));
         changedAssignmentMap.forEach(
                 (readerOwner, newPartitionSplits) -> {
                     // Update the split assignment.
                     currentSplitAssignmentMap.put(readerOwner, Sets.newHashSet(newPartitionSplits));
-
-                    // Clear the pending splits for the reader owner.
-                    pendingSplitAssignmentMap.remove(readerOwner);
 
                     // Sends NoMoreSplitsEvent to the readers
                     // if there is no more partition splits to be assigned.
@@ -335,7 +331,8 @@ public class RocketMQSourceEnumerator
                     }
                 });
 
-        this.calculatedAllocatedSet(this.currentSplitAssignmentMap);
+        this.allocatedSet.clear();
+        this.allocatedSet.addAll(this.calculatedAllocatedSet(this.currentSplitAssignmentMap));
     }
 
     /**
@@ -399,9 +396,10 @@ public class RocketMQSourceEnumerator
         MessageQueueChange changeResult = new MessageQueueChange(increaseSet, decreaseSet);
         if (changeResult.isEmpty()) {
             // before message queue set is same as latest message queue set
-            LOG.info("Periodic service discovery for update topic route, current size: {}", currentSet.size());
+            LOG.info("Service discovery for update topic route, current mq size: {}", currentSet.size());
         } else {
-            LOG.info("Got partitions change event, current: {}, increase: {}, decrease: {}",
+            LOG.info("Service discovery for update topic route. " +
+                            "Got partitions change event, current: {}, increase: {}, decrease: {}",
                     currentSet, increaseSet, decreaseSet);
         }
         return changeResult;

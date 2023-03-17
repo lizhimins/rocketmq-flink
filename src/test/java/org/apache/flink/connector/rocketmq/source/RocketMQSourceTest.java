@@ -27,7 +27,8 @@ public class RocketMQSourceTest {
                 .setDeserializer(new RocketMQDeserializationSchema<String>() {
                     @Override
                     public void deserialize(MessageView messageView, Collector<String> out) {
-                        out.collect(new String(messageView.getBody()));
+                        System.out.println(messageView.getMessageId());
+                        out.collect(messageView.getMessageId());
                     }
 
                     @Override

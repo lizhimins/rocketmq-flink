@@ -87,7 +87,7 @@ public interface InnerConsumer extends AutoCloseable {
      * @param messageQueue the message queue to override the fetch offset.
      * @param offset       message offset.
      */
-    void seek(MessageQueue messageQueue, long offset);
+    void seek(MessageQueue messageQueue, long offset) throws MQClientException;
 
     /**
      * Seek consumer group previously committed offset

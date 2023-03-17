@@ -21,15 +21,17 @@ package org.apache.flink.connector.rocketmq.source.split;
 import org.apache.flink.api.connector.source.SourceSplit;
 import org.apache.rocketmq.common.message.MessageQueue;
 
-import java.beans.Transient;
 import java.util.Objects;
+
+import static org.apache.flink.connector.rocketmq.source.util.UtilAll.SEPARATOR;
 
 /**
  * A {@link SourceSplit} for a RocketMQ partition.
  */
 public class RocketMQSourceSplit implements SourceSplit {
 
-    public static final long NO_STOPPING_OFFSET = Long.MAX_VALUE;
+    // -1 means Long.MAX_VALUE
+    public static final long NO_STOPPING_OFFSET = -1L;
 
     private final String topic;
     private final String brokerName;
@@ -37,12 +39,12 @@ public class RocketMQSourceSplit implements SourceSplit {
     private final long minOffset;
     private final long maxOffset;
 
-    public RocketMQSourceSplit(MessageQueue messageQueue, long minOffset, long stoppingTimestamp) {
+    public RocketMQSourceSplit(MessageQueue messageQueue, long minOffset, long maxOffset) {
         this.topic = messageQueue.getTopic();
         this.brokerName = messageQueue.getBrokerName();
         this.queueId = messageQueue.getQueueId();
         this.minOffset = minOffset;
-        this.maxOffset = stoppingTimestamp;
+        this.maxOffset = maxOffset;
     }
 
     public RocketMQSourceSplit(String topic, String brokerName, int queueId, long minOffset, long maxOffset) {
@@ -75,13 +77,13 @@ public class RocketMQSourceSplit implements SourceSplit {
 
     @Override
     public String splitId() {
-        return topic + "-" + brokerName + "-" + queueId;
+        return topic + SEPARATOR + brokerName + SEPARATOR + queueId;
     }
 
     @Override
     public String toString() {
         return String.format(
-                "[TopicName: %s, BrokerName: %s, PartitionId: %s, StartingOffset: %d, StoppingOffset: %d]",
+                "(Topic: %s, BrokerName: %s, QueueId: %d, MinOffset: %d, MaxOffset: %d)",
                 topic, brokerName, queueId, minOffset, maxOffset);
     }
 

@@ -40,6 +40,7 @@ public class OffsetsSelectorByStrategy
     }
 
     @Override
+    @SuppressWarnings("deprecation")
     public Map<MessageQueue, Long> getMessageQueueOffsets(
             Collection<MessageQueue> partitions,
             MessageQueueOffsetsRetriever offsetsRetriever) {
@@ -47,8 +48,9 @@ public class OffsetsSelectorByStrategy
         switch (consumeFromWhere) {
             case CONSUME_FROM_FIRST_OFFSET:
                 return offsetsRetriever.minOffsets(partitions);
-            case CONSUME_FROM_LAST_OFFSET:
+            case CONSUME_FROM_MAX_OFFSET:
                 return offsetsRetriever.maxOffsets(partitions);
+            case CONSUME_FROM_LAST_OFFSET:
             default:
                 return offsetsRetriever.committedOffsets(partitions);
         }

@@ -32,12 +32,14 @@ import org.apache.flink.connector.rocketmq.source.split.RocketMQSourceSplitState
 import java.util.Map;
 import java.util.function.Supplier;
 
-/** The source reader for RocketMQ partitions. */
+/**
+ * The source reader for RocketMQ partitions.
+ */
 public class RocketMQSourceReader<T>
         extends SingleThreadMultiplexSourceReaderBase<
         MessageView, T, RocketMQSourceSplit, RocketMQSourceSplitState> {
 
-    private final RocketMQSourceReaderMetrics rocketMQSourceReaderMetrics;
+    private final RocketMQSourceReaderMetrics rocketmqSourceReaderMetrics;
 
     public RocketMQSourceReader(
             FutureCompletingBlockingQueue<RecordsWithSplitIds<MessageView>> elementsQueue,
@@ -48,11 +50,12 @@ public class RocketMQSourceReader<T>
             RocketMQSourceReaderMetrics rocketMQSourceReaderMetrics) {
 
         super(elementsQueue, splitReaderSupplier, recordEmitter, config, context);
-        this.rocketMQSourceReaderMetrics = rocketMQSourceReaderMetrics;
+        this.rocketmqSourceReaderMetrics = rocketMQSourceReaderMetrics;
     }
 
     @Override
-    protected void onSplitFinished(Map<String, RocketMQSourceSplitState> map) {}
+    protected void onSplitFinished(Map<String, RocketMQSourceSplitState> map) {
+    }
 
     @Override
     protected RocketMQSourceSplitState initializedState(RocketMQSourceSplit partitionSplit) {

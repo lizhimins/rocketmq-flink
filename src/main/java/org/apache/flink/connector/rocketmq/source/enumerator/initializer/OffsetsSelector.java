@@ -133,9 +133,10 @@ public interface OffsetsSelector extends Serializable {
      *
      * @return an {@link OffsetsSelector} which initializes the offsets to the latest offsets.
      */
+    @SuppressWarnings("deprecation")
     static OffsetsSelector latest() {
         return new OffsetsSelectorByStrategy(
-                ConsumeFromWhere.CONSUME_FROM_LAST_OFFSET, OffsetResetStrategy.LATEST);
+                ConsumeFromWhere.CONSUME_FROM_MAX_OFFSET, OffsetResetStrategy.LATEST);
     }
 
     /**

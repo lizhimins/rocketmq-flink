@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration scan="true" scanPeriod="60 seconds" debug="false">
+
+    <logger name="org.springframework" level="ERROR"/>
+
+    <!--======================================= 本地变量 ======================================== -->
+    <!--在没有定义${LOG_HOME}系统变量的时候，可以设置此本地变量。提交测试、上线时，要将其注释掉，使用系统变量。    -->
+    <property name="LOG_HOME" value="${user.home}/logs"/>
+    <!--应用名称：和统一配置中的项目代码保持一致（小写）-->
+    <property name="APP_NAME" value="flink-connector-rocketmq"/>
+    <!--日志文件保留天数和大小-->
+    <property name="LOG_MAX_DAYS" value="90"/>
+    <property name="LOG_MAX_SIZE" value="20GB"/>
+    <!--定义日志文件的存储地址 勿在 LogBack 的配置中使用相对路径 -->
+    <!--应用日志文件保存路径 -->
+    <property name="LOG_APP_HOME" value="${LOG_HOME}/connector"/>
+
+    <contextName>${APP_NAME}</contextName>
+
+    <!--=========================== 按照每天生成日志文件：默认配置=================================== -->
+    <!-- 彩色日志依赖的渲染类 -->
+    <conversionRule conversionWord="clr" converterClass="org.springframework.boot.logging.logback.ColorConverter"/>
+    <conversionRule conversionWord="wex"
+                    converterClass="org.springframework.boot.logging.logback.WhitespaceThrowableProxyConverter"/>
+    <conversionRule conversionWord="wEx"
+                    converterClass="org.springframework.boot.logging.logback.ExtendedWhitespaceThrowableProxyConverter"/>
+
+    <!-- 彩色日志格式 -->
+    <property name="CONSOLE_LOG_PATTERN"
+              value="${CONSOLE_LOG_PATTERN1:-%clr(%d{yyyy-MM-dd HH:mm:ss.SSS}){faint} %clr(${LOG_LEVEL_PATTERN:-%5p}) %clr(${PID:- }){magenta} %clr(---){faint} %clr([%15.15t]){faint} %clr(%-40.40logger{39}){cyan} %clr(:){faint} %m%n${LOG_EXCEPTION_CONVERSION_WORD:-%wEx}}"/>
+
+    <!-- 彩色日志格式 -->
+    <property name="CONSOLE_LOG_PATTERN_SIMPLE"
+              value="${CONSOLE_LOG_PATTERN1:-%clr(%d{yyyy-MM-dd HH:mm:ss.SSS}){faint} %clr(${LOG_LEVEL_PATTERN:-%5p}) %clr([%15.15t]){faint} %clr(%-40.40logger{39}){cyan} %clr(:){faint} %m%n${LOG_EXCEPTION_CONVERSION_WORD:-%wEx}}"/>
+
+    <!-- 彩色日志格式 -->
+    <property name="CONSOLE_LOG_PATTERN_LOCAL_2"
+              value="${CONSOLE_LOG_PATTERN1:-%clr(%d{HH:mm:ss.SSS}){faint} %clr(${LOG_LEVEL_PATTERN:-%5p}) %clr([%-40.40logger{39}]){cyan} %m%n${LOG_EXCEPTION_CONVERSION_WORD:-%wEx}}"/>
+
+    <property name="CONSOLE_LOG_PATTERN_LOCAL"
+              value="%d{yyy-MM-dd HH:mm:ss,GMT+8} ${LOG_LEVEL_PATTERN:-%5p} [%-40.40logger{39}] %m%n"/>
+
+    <!-- 输出到控制台配置 -->
+    <appender name="console" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <!--<pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{50} - %msg%n</pattern>&ndash;&gt;-->
+            <!--<pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%contextName] %-5level %logger{36} -%msg%n</pattern>-->
+            <pattern>${CONSOLE_LOG_PATTERN_LOCAL}</pattern>
+            <charset class="java.nio.charset.Charset">UTF-8</charset>
+        </encoder>
+    </appender>
+
+    <!-- 文件输出 info -->
+    <appender name="fileInfoLog" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <!--
+            日志名称，如果没有File 属性，那么只会使用FileNamePattern的文件路径规则
+            如果同时有<File>和<FileNamePattern>，那么当天日志是<File>，明天会自动把今天
+            的日志改名为今天的日期。即，<File> 的日志都是当天的。
+        -->
+        <File>${LOG_APP_HOME}/rocketmq-meta.log</File>
+        <!--滚动策略，按照时间滚动 TimeBasedRollingPolicy-->
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <!--文件路径,定义了日志的切分方式——把每一天的日志归档到一个文件中,以防止日志填满整个磁盘空间-->
+            <FileNamePattern>${LOG_APP_HOME}/rocketmq-meta/rocketmq-meta-%d{yyyy-MM-dd}.log</FileNamePattern>
+            <!--只保留最近的日志-->
+            <maxHistory>${LOG_MAX_DAYS}</maxHistory>
+            <!--用来指定日志文件的上限大小，那么到了这个值，就会删除旧的日志-->
+            <totalSizeCap>${LOG_MAX_SIZE}</totalSizeCap>
+        </rollingPolicy>
+        <!--日志输出编码格式化-->
+        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+            <!--格式化输出：%d表示日期，%thread表示线程名，%-5level：级别从左显示5个字符宽度%msg：日志消息，%n是换行符 -->
+            <!-- <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{500} - %msg%n</pattern> -->
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} ${LOG_LEVEL_PATTERN:-%5p} [%15.15t] [%-40.40logger{39}] %msg%n
+            </pattern>
+            <charset class="java.nio.charset.Charset">UTF-8</charset>
+        </encoder>
+    </appender>
+
+    <!-- 最基础的日志输出级别 -->
+    <root level="info">
+        <appender-ref ref="console"/>
+    </root>
+</configuration>
